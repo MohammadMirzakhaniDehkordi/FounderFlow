@@ -249,7 +249,8 @@
       "startMonth": "Start month",
       "isManagingDirector": "Managing director salary (not subject to social security)",
       "noEmployees": "No employees added yet.",
-      "clickToAdd": "Click \"Add employee\" to get started."
+      "clickToAdd": "Click \"Add employee\" to get started.",
+      "employeeInfo": "From {month} • {amount} €{perMonth}"
     },
     "operatingCosts": {
       "intro": "Enter your monthly operating costs. These are used as averages for the whole planning period.",
@@ -299,7 +300,7 @@
       "intro": "Record financing such as bank loans, KfW loans or other credit.",
       "loanNoteTitle": "Note on loans",
       "loanNoteDesc": "The loan amount increases your liquidity at the start, but monthly payments (principal + interest) are recorded as expenses. Grace periods are included in the calculation.",
-      "gracePeriodMonths": "mo. grace period",
+      "gracePeriodMonths": "{count} mo. grace period",
       "from": "From",
       "interest": "Interest",
       "months": "Months",
@@ -316,7 +317,8 @@
       "gracePeriod": "Grace period (months)",
       "estimatedMonthly": "Estimated monthly payment:",
       "noLoans": "No financing recorded yet.",
-      "canSkipLoans": "You can skip this step if no loans are planned."
+      "canSkipLoans": "You can skip this step if no loans are planned.",
+      "loanDetails": "{amount} € • {rate}% interest • {months} months"
     },
     "review": {
       "intro": "Review your inputs and the calculated financial forecast.",

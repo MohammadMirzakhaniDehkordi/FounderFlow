@@ -14,88 +14,89 @@ import {
 } from "@/components/ui/form";
 import { WizardLayout } from "../WizardLayout";
 import { useWizardStore } from "@/lib/store/wizardStore";
-import { 
-  Home, 
-  Megaphone, 
-  Shield, 
-  Laptop, 
+import {
+  Home,
+  Megaphone,
+  Shield,
+  Laptop,
   Phone,
   Car,
   Calculator,
   FileText,
   Building2,
-  MoreHorizontal 
+  MoreHorizontal
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 // Categories matching German Betriebskosten from Excel template
 const COST_CATEGORIES = [
   {
     key: "rent",
-    label: "Miete",
-    description: "Büro, Coworking, Lager",
+    labelKey: "wizard.operatingCosts.rent",
+    descriptionKey: "wizard.operatingCosts.rentDesc",
     icon: Home,
     defaultValue: 200,
   },
   {
     key: "telephoneInternet",
-    label: "Telefon & Internet",
-    description: "Festnetz, Mobil, DSL",
+    labelKey: "wizard.operatingCosts.telephoneInternet",
+    descriptionKey: "wizard.operatingCosts.telephoneInternetDesc",
     icon: Phone,
     defaultValue: 10,
   },
   {
     key: "travelCosts",
-    label: "Fahrt-/Reisekosten",
-    description: "PKW, Benzin, Versicherung, Leasing",
+    labelKey: "wizard.operatingCosts.travelCosts",
+    descriptionKey: "wizard.operatingCosts.travelCostsDesc",
     icon: Car,
     defaultValue: 150,
   },
   {
     key: "insurance",
-    label: "Versicherungen",
-    description: "Betriebshaftpflicht, etc.",
+    labelKey: "wizard.operatingCosts.insurance",
+    descriptionKey: "wizard.operatingCosts.insuranceDesc",
     icon: Shield,
     defaultValue: 20,
   },
   {
     key: "marketing",
-    label: "Marketing",
-    description: "Web, LinkedIn, Facebook, Werbung",
+    labelKey: "wizard.operatingCosts.marketing",
+    descriptionKey: "wizard.operatingCosts.marketingDesc",
     icon: Megaphone,
     defaultValue: 350,
   },
   {
     key: "softwareLicenses",
-    label: "Software Lizenzen",
-    description: "Zoom, Microsoft, SaaS",
+    labelKey: "wizard.operatingCosts.softwareLicenses",
+    descriptionKey: "wizard.operatingCosts.softwareLicensesDesc",
     icon: Laptop,
     defaultValue: 25,
   },
   {
     key: "accounting",
-    label: "Steuerberater",
-    description: "Buchhaltung, DATEV",
+    labelKey: "wizard.operatingCosts.accounting",
+    descriptionKey: "wizard.operatingCosts.accountingDesc",
     icon: Calculator,
     defaultValue: 0,
   },
   {
     key: "officeSupplies",
-    label: "Büromaterial",
-    description: "Papier, Drucker, etc.",
+    labelKey: "wizard.operatingCosts.officeSupplies",
+    descriptionKey: "wizard.operatingCosts.officeSuppliesDesc",
     icon: FileText,
     defaultValue: 0,
   },
   {
     key: "chamberFees",
-    label: "IHK Beiträge",
-    description: "Industrie- und Handelskammer",
+    labelKey: "wizard.operatingCosts.chamberFees",
+    descriptionKey: "wizard.operatingCosts.chamberFeesDesc",
     icon: Building2,
     defaultValue: 0,
   },
   {
     key: "other",
-    label: "Sonstiges",
-    description: "Weitere laufende Kosten",
+    labelKey: "wizard.operatingCosts.other",
+    descriptionKey: "wizard.operatingCosts.otherDesc",
     icon: MoreHorizontal,
     defaultValue: 0,
   },
@@ -103,6 +104,8 @@ const COST_CATEGORIES = [
 
 export function OperatingCostsStep() {
   const { operatingCosts, updateOperatingCosts } = useWizardStore();
+  const { t, locale } = useTranslation();
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
 
   const form = useForm({
     defaultValues: {
@@ -142,9 +145,7 @@ export function OperatingCostsStep() {
   return (
     <WizardLayout onNext={handleNext}>
       <div className="space-y-6">
-        <p className="text-muted-foreground">
-          Geben Sie Ihre monatlichen Betriebskosten ein. Diese werden als Durchschnittswerte für die gesamte Planungsperiode verwendet.
-        </p>
+        <p className="text-muted-foreground">{t("wizard.operatingCosts.intro")}</p>
 
         <Form {...form}>
           <form className="space-y-4">
@@ -163,9 +164,9 @@ export function OperatingCostsStep() {
                               <category.icon className="h-5 w-5 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <FormLabel className="font-medium">{category.label}</FormLabel>
+                              <FormLabel className="font-medium">{t(category.labelKey)}</FormLabel>
                               <FormDescription className="text-xs">
-                                {category.description}
+                                {t(category.descriptionKey)}
                               </FormDescription>
                               <div className="mt-2">
                                 <FormControl>
@@ -181,7 +182,7 @@ export function OperatingCostsStep() {
                                       }
                                     />
                                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                                      €/Mon
+                                      {t("wizard.operatingCosts.perMonthShort")}
                                     </span>
                                   </div>
                                 </FormControl>
@@ -204,17 +205,17 @@ export function OperatingCostsStep() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-semibold">Gesamte Betriebskosten</h4>
+                <h4 className="font-semibold">{t("wizard.operatingCosts.totalOperatingCosts")}</h4>
                 <p className="text-sm text-muted-foreground">
-                  Monatliche Fixkosten (ohne Personal)
+                  {t("wizard.operatingCosts.monthlyFixedCosts")}
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold">
-                  {totalMonthly.toLocaleString("de-DE")} €
+                  {totalMonthly.toLocaleString(numberLocale)} €
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {(totalMonthly * 12).toLocaleString("de-DE")} €/Jahr
+                  {(totalMonthly * 12).toLocaleString(numberLocale)} €{t("common.perYear")}
                 </p>
               </div>
             </div>

@@ -17,17 +17,20 @@ import { WizardLayout } from "../WizardLayout";
 import { useWizardStore } from "@/lib/store/wizardStore";
 import type { Investment } from "@/lib/types";
 import { Plus, Trash2, Package, Laptop, Armchair, Car, HelpCircle } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 const CATEGORIES = [
-  { value: "equipment", label: "Ausstattung", icon: Package },
-  { value: "software", label: "Software", icon: Laptop },
-  { value: "furniture", label: "Möbel", icon: Armchair },
-  { value: "vehicles", label: "Fahrzeuge", icon: Car },
-  { value: "other", label: "Sonstiges", icon: HelpCircle },
+  { value: "equipment", labelKey: "wizard.investments.equipment", icon: Package },
+  { value: "software", labelKey: "wizard.investments.software", icon: Laptop },
+  { value: "furniture", labelKey: "wizard.investments.furniture", icon: Armchair },
+  { value: "vehicles", labelKey: "wizard.investments.vehicles", icon: Car },
+  { value: "other", labelKey: "wizard.investments.other", icon: HelpCircle },
 ] as const;
 
 export function InvestmentsStep() {
   const { investments, plan, addInvestment, removeInvestment } = useWizardStore();
+  const { t, locale } = useTranslation();
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
   const [showForm, setShowForm] = useState(false);
   const [newInvestment, setNewInvestment] = useState<Partial<Investment>>({
     name: "",
@@ -66,7 +69,7 @@ export function InvestmentsStep() {
 
   const getCategoryLabel = (category: string) => {
     const cat = CATEGORIES.find((c) => c.value === category);
-    return cat?.label || category;
+    return cat ? t(cat.labelKey) : category;
   };
 
   const totalInvestments = items.reduce((sum, item) => sum + item.amount, 0);
@@ -82,16 +85,16 @@ export function InvestmentsStep() {
   return (
     <WizardLayout>
       <div className="space-y-6">
-        <p className="text-muted-foreground">
-          Erfassen Sie einmalige Investitionen wie Anschaffungen, Software-Lizenzen oder Gründungskosten.
-        </p>
+        <p className="text-muted-foreground">{t("wizard.investments.intro")}</p>
 
         {/* Investment List */}
         {items.length > 0 && (
           <div className="space-y-4">
             {Object.entries(investmentsByYear).map(([year, yearItems]) => (
               <div key={year}>
-                <h4 className="font-medium mb-2 text-sm text-muted-foreground">Jahr {year}</h4>
+                <h4 className="font-medium mb-2 text-sm text-muted-foreground">
+                  {t("common.year")} {year}
+                </h4>
                 <div className="space-y-2">
                   {yearItems.map((item) => {
                     const Icon = getCategoryIcon(item.category);
@@ -117,7 +120,7 @@ export function InvestmentsStep() {
                             </div>
                             <div className="flex items-center gap-3">
                               <span className="font-semibold">
-                                {item.amount.toLocaleString("de-DE")} €
+                                {item.amount.toLocaleString(numberLocale)} €
                               </span>
                               <Button
                                 variant="ghost"
@@ -139,9 +142,9 @@ export function InvestmentsStep() {
             <Card className="bg-muted/50">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">Gesamte Investitionen</span>
+                  <span className="font-medium">{t("wizard.investments.totalInvestments")}</span>
                   <span className="font-bold text-lg">
-                    {totalInvestments.toLocaleString("de-DE")} €
+                    {totalInvestments.toLocaleString(numberLocale)} €
                   </span>
                 </div>
               </CardContent>
@@ -153,15 +156,15 @@ export function InvestmentsStep() {
         {showForm ? (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Neue Investition hinzufügen</CardTitle>
+              <CardTitle className="text-lg">{t("wizard.investments.addInvestment")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">Bezeichnung</Label>
+                  <Label htmlFor="name">{t("wizard.investments.name")}</Label>
                   <Input
                     id="name"
-                    placeholder="z.B. MacBook Pro, Büroeinrichtung"
+                    placeholder={t("wizard.investments.namePlaceholder")}
                     value={newInvestment.name}
                     onChange={(e) =>
                       setNewInvestment({ ...newInvestment, name: e.target.value })
@@ -170,7 +173,7 @@ export function InvestmentsStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="amount">Betrag (€)</Label>
+                  <Label htmlFor="amount">{t("wizard.investments.amount")}</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -187,7 +190,7 @@ export function InvestmentsStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="month">Monat</Label>
+                  <Label htmlFor="month">{t("wizard.investments.month")}</Label>
                   <Input
                     id="month"
                     type="month"
@@ -199,7 +202,7 @@ export function InvestmentsStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="category">Kategorie</Label>
+                  <Label htmlFor="category">{t("wizard.investments.category")}</Label>
                   <Select
                     value={newInvestment.category}
                     onValueChange={(value) =>
@@ -215,7 +218,7 @@ export function InvestmentsStep() {
                     <SelectContent>
                       {CATEGORIES.map((cat) => (
                         <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
+                          {t(cat.labelKey)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -223,9 +226,9 @@ export function InvestmentsStep() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleAddInvestment}>Hinzufügen</Button>
+                <Button onClick={handleAddInvestment}>{t("common.add")}</Button>
                 <Button variant="outline" onClick={() => setShowForm(false)}>
-                  Abbrechen
+                  {t("common.cancel")}
                 </Button>
               </div>
             </CardContent>
@@ -237,17 +240,15 @@ export function InvestmentsStep() {
             onClick={() => setShowForm(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Investition hinzufügen
+            {t("wizard.investments.addInvestment")}
           </Button>
         )}
 
         {items.length === 0 && !showForm && (
           <div className="text-center py-8 text-muted-foreground">
             <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Noch keine Investitionen erfasst.</p>
-            <p className="text-sm">
-              Sie können diesen Schritt überspringen, wenn keine Investitionen geplant sind.
-            </p>
+            <p>{t("wizard.investments.noInvestments")}</p>
+            <p className="text-sm">{t("wizard.investments.canSkip")}</p>
           </div>
         )}
       </div>

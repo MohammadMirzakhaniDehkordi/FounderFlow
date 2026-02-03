@@ -249,7 +249,8 @@
       "startMonth": "Startmonat",
       "isManagingDirector": "Geschäftsführer-Gehalt (nicht sozialversicherungspflichtig)",
       "noEmployees": "Noch keine Mitarbeiter hinzugefügt.",
-      "clickToAdd": "Klicken Sie auf \"Mitarbeiter hinzufügen\" um zu beginnen."
+      "clickToAdd": "Klicken Sie auf \"Mitarbeiter hinzufügen\" um zu beginnen.",
+      "employeeInfo": "Ab {month} • {amount} €{perMonth}"
     },
     "operatingCosts": {
       "intro": "Geben Sie Ihre monatlichen Betriebskosten ein. Diese werden als Durchschnittswerte für die gesamte Planungsperiode verwendet.",
@@ -299,7 +300,7 @@
       "intro": "Erfassen Sie Ihre Finanzierungen wie Bankdarlehen, KfW-Kredite oder andere Darlehen.",
       "loanNoteTitle": "Hinweis zu Krediten",
       "loanNoteDesc": "Die Kreditsumme erhöht Ihre Liquidität zu Beginn, aber die monatlichen Raten (Tilgung + Zinsen) werden als Ausgaben verbucht. Tilgungsfreie Zeiten werden bei der Berechnung berücksichtigt.",
-      "gracePeriodMonths": "Mon. tilgungsfrei",
+      "gracePeriodMonths": "{count} Mon. tilgungsfrei",
       "from": "Ab",
       "interest": "Zinsen",
       "months": "Monate",
@@ -316,7 +317,8 @@
       "gracePeriod": "Tilgungsfreie Zeit (Monate)",
       "estimatedMonthly": "Geschätzte monatliche Rate:",
       "noLoans": "Noch keine Finanzierungen erfasst.",
-      "canSkipLoans": "Sie können diesen Schritt überspringen, wenn keine Kredite geplant sind."
+      "canSkipLoans": "Sie können diesen Schritt überspringen, wenn keine Kredite geplant sind.",
+      "loanDetails": "{amount} € • {rate}% Zinsen • {months} Monate"
     },
     "review": {
       "intro": "Überprüfen Sie Ihre Eingaben und die berechnete Finanzprognose.",

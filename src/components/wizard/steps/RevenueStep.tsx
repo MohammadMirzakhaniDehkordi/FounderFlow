@@ -11,14 +11,11 @@ import { WizardLayout } from "../WizardLayout";
 import { useWizardStore } from "@/lib/store/wizardStore";
 import { generateMonthKeys } from "@/lib/calculations/liquidity";
 import { TrendingUp, Calculator, Calendar } from "lucide-react";
-
-const MONTHS_DE = [
-  "Januar", "Februar", "März", "April", "Mai", "Juni",
-  "Juli", "August", "September", "Oktober", "November", "Dezember"
-];
+import { useTranslation } from "@/lib/i18n";
 
 export function RevenueStep() {
   const { revenue, plan, updateRevenue } = useWizardStore();
+  const { t, locale } = useTranslation();
   const [revenueModel, setRevenueModel] = useState<"fixed" | "growth" | "custom">(
     revenue.revenueModel || "fixed"
   );
@@ -33,6 +30,7 @@ export function RevenueStep() {
   );
 
   const monthKeys = generateMonthKeys(plan.startYear, 3);
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
 
   const handleNext = () => {
     const months: Record<string, { unitPrice: number; unitsSold: number; total: number }> = {};
@@ -69,44 +67,40 @@ export function RevenueStep() {
 
   const formatMonth = (monthKey: string) => {
     const [year, month] = monthKey.split("-");
-    return `${MONTHS_DE[parseInt(month) - 1]} ${year}`;
+    return `${t(`months.${parseInt(month)}`)} ${year}`;
   };
 
   return (
     <WizardLayout onNext={handleNext}>
       <div className="space-y-6">
-        <p className="text-muted-foreground">
-          Wie möchten Sie Ihren Umsatz planen? Wählen Sie das Modell, das am besten zu Ihrem Geschäft passt.
-        </p>
+        <p className="text-muted-foreground">{t("wizard.revenue.intro")}</p>
 
         <Tabs value={revenueModel} onValueChange={(v) => setRevenueModel(v as typeof revenueModel)}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="fixed" className="gap-2">
               <Calculator className="h-4 w-4" />
-              Fest
+              {t("wizard.revenue.fixed")}
             </TabsTrigger>
             <TabsTrigger value="growth" className="gap-2">
               <TrendingUp className="h-4 w-4" />
-              Wachstum
+              {t("wizard.revenue.growth")}
             </TabsTrigger>
             <TabsTrigger value="custom" className="gap-2">
               <Calendar className="h-4 w-4" />
-              Individuell
+              {t("wizard.revenue.custom")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="fixed" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Fester Monatsumsatz</CardTitle>
-                <CardDescription>
-                  Gleicher Umsatz jeden Monat über die gesamte Planungsperiode
-                </CardDescription>
+                <CardTitle>{t("wizard.revenue.fixedTitle")}</CardTitle>
+                <CardDescription>{t("wizard.revenue.fixedDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="fixedRevenue">Monatlicher Umsatz (€)</Label>
+                    <Label htmlFor="fixedRevenue">{t("wizard.revenue.monthlyRevenue")}</Label>
                     <Input
                       id="fixedRevenue"
                       type="number"
@@ -119,10 +113,12 @@ export function RevenueStep() {
                   </div>
                   <div className="p-4 bg-muted rounded-lg">
                     <p className="text-sm">
-                      <strong>Jahresumsatz:</strong> {(fixedRevenue * 12).toLocaleString("de-DE")} €
+                      <strong>{t("wizard.revenue.annualRevenue")}</strong>{" "}
+                      {(fixedRevenue * 12).toLocaleString(numberLocale)} €
                     </p>
                     <p className="text-sm">
-                      <strong>3-Jahres-Umsatz:</strong> {(fixedRevenue * 36).toLocaleString("de-DE")} €
+                      <strong>{t("wizard.revenue.threeYearRevenue")}</strong>{" "}
+                      {(fixedRevenue * 36).toLocaleString(numberLocale)} €
                     </p>
                   </div>
                 </div>
@@ -133,15 +129,13 @@ export function RevenueStep() {
           <TabsContent value="growth" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Lineares Wachstum</CardTitle>
-                <CardDescription>
-                  Der Umsatz wächst linear von einem Start- zu einem Endwert
-                </CardDescription>
+                <CardTitle>{t("wizard.revenue.growthTitle")}</CardTitle>
+                <CardDescription>{t("wizard.revenue.growthDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="growthStart">Startumsatz (Monat 1) (€)</Label>
+                    <Label htmlFor="growthStart">{t("wizard.revenue.startRevenue")}</Label>
                     <Input
                       id="growthStart"
                       type="number"
@@ -153,7 +147,7 @@ export function RevenueStep() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="growthEnd">Endumsatz (Monat 36) (€)</Label>
+                    <Label htmlFor="growthEnd">{t("wizard.revenue.endRevenue")}</Label>
                     <Input
                       id="growthEnd"
                       type="number"
@@ -167,12 +161,12 @@ export function RevenueStep() {
                 </div>
                 <div className="p-4 bg-muted rounded-lg mt-4">
                   <p className="text-sm">
-                    <strong>Durchschnittlicher Monatsumsatz:</strong>{" "}
-                    {Math.round((growthStart + growthEnd) / 2).toLocaleString("de-DE")} €
+                    <strong>{t("wizard.revenue.avgMonthly")}</strong>{" "}
+                    {Math.round((growthStart + growthEnd) / 2).toLocaleString(numberLocale)} €
                   </p>
                   <p className="text-sm">
-                    <strong>Monatliches Wachstum:</strong>{" "}
-                    {Math.round((growthEnd - growthStart) / 35).toLocaleString("de-DE")} €
+                    <strong>{t("wizard.revenue.monthlyGrowth")}</strong>{" "}
+                    {Math.round((growthEnd - growthStart) / 35).toLocaleString(numberLocale)} €
                   </p>
                 </div>
               </CardContent>
@@ -182,10 +176,8 @@ export function RevenueStep() {
           <TabsContent value="custom" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Individuelle Planung</CardTitle>
-                <CardDescription>
-                  Geben Sie den Umsatz für jeden Monat einzeln ein
-                </CardDescription>
+                <CardTitle>{t("wizard.revenue.customTitle")}</CardTitle>
+                <CardDescription>{t("wizard.revenue.customDesc")}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
@@ -217,7 +209,11 @@ export function RevenueStep() {
                           ))}
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground">
-                          Jahressumme: {yearMonths.reduce((sum, m) => sum + (customMonths[m] || 0), 0).toLocaleString("de-DE")} €
+                          {t("wizard.revenue.yearSum")}{" "}
+                          {yearMonths
+                            .reduce((sum, m) => sum + (customMonths[m] || 0), 0)
+                            .toLocaleString(numberLocale)}{" "}
+                          €
                         </div>
                       </div>
                     );

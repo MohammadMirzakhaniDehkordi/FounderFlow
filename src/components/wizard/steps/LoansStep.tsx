@@ -11,14 +11,17 @@ import { useWizardStore } from "@/lib/store/wizardStore";
 import { calculateMonthlyPayment, generateLoanSchedule } from "@/lib/calculations/loans";
 import type { Loan } from "@/lib/types";
 import { Plus, Trash2, Landmark, Info } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export function LoansStep() {
   const { loans, plan, addLoan, removeLoan } = useWizardStore();
+  const { t, locale } = useTranslation();
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
   const [showForm, setShowForm] = useState(false);
   const [newLoan, setNewLoan] = useState<Partial<Loan>>({
     name: "",
     amount: 0,
-    interestRate: 0.035, // 3.5% default
+    interestRate: 0.035,
     termMonths: 60,
     startMonth: `${plan.startYear}-01`,
     gracePeriodMonths: 0,
@@ -56,42 +59,38 @@ export function LoansStep() {
 
   const totalLoanAmount = loansList.reduce((sum, loan) => sum + loan.amount, 0);
 
-  // Calculate monthly payment preview
-  const previewMonthlyPayment = newLoan.amount && newLoan.interestRate && newLoan.termMonths
-    ? calculateMonthlyPayment(
-        newLoan.amount,
-        newLoan.interestRate,
-        newLoan.termMonths - (newLoan.gracePeriodMonths || 0)
-      )
-    : 0;
+  const previewMonthlyPayment =
+    newLoan.amount && newLoan.interestRate && newLoan.termMonths
+      ? calculateMonthlyPayment(
+          newLoan.amount,
+          newLoan.interestRate,
+          newLoan.termMonths - (newLoan.gracePeriodMonths || 0)
+        )
+      : 0;
+
+  const formatCurrency = (value: number) => value.toLocaleString(numberLocale);
 
   return (
     <WizardLayout>
       <div className="space-y-6">
-        <p className="text-muted-foreground">
-          Erfassen Sie Ihre Finanzierungen wie Bankdarlehen, KfW-Kredite oder andere Darlehen.
-        </p>
+        <p className="text-muted-foreground">{t("wizard.loans.intro")}</p>
 
-        {/* Info Card */}
         <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-950/20">
           <CardContent className="p-4">
             <div className="flex gap-3">
               <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-blue-900 dark:text-blue-100">
-                  Hinweis zu Krediten
+                  {t("wizard.loans.loanNoteTitle")}
                 </p>
                 <p className="text-blue-700 dark:text-blue-300 mt-1">
-                  Die Kreditsumme erhöht Ihre Liquidität zu Beginn, aber die monatlichen Raten 
-                  (Tilgung + Zinsen) werden als Ausgaben verbucht. Tilgungsfreie Zeiten werden 
-                  bei der Berechnung berücksichtigt.
+                  {t("wizard.loans.loanNoteDesc")}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Loan List */}
         {loansList.length > 0 && (
           <div className="space-y-3">
             {loansList.map((loan) => {
@@ -115,25 +114,33 @@ export function LoansStep() {
                             <span className="font-medium">{loan.name}</span>
                             {loan.gracePeriodMonths > 0 && (
                               <Badge variant="secondary">
-                                {loan.gracePeriodMonths} Mon. tilgungsfrei
+                                {t("wizard.loans.gracePeriodMonths", {
+                                  count: loan.gracePeriodMonths,
+                                })}
                               </Badge>
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground mt-1 space-y-0.5">
                             <p>
-                              {loan.amount.toLocaleString("de-DE")} € • {(loan.interestRate * 100).toFixed(1)}% Zinsen • {loan.termMonths} Monate
+                              {t("wizard.loans.loanDetails", {
+                                amount: formatCurrency(loan.amount),
+                                rate: (loan.interestRate * 100).toFixed(1),
+                                months: loan.termMonths,
+                              })}
                             </p>
-                            <p>Ab {loan.startMonth}</p>
+                            <p>
+                              {t("wizard.loans.from")} {loan.startMonth}
+                            </p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
                         <div className="text-right">
                           <p className="font-semibold">
-                            {monthlyPayment.toLocaleString("de-DE")} €/Mon
+                            {formatCurrency(monthlyPayment)} {t("common.perMonth")}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Gesamt-Zinsen: {schedule.totalInterest.toLocaleString("de-DE")} €
+                            {t("wizard.loans.totalInterest")} {formatCurrency(schedule.totalInterest)} €
                           </p>
                         </div>
                         <Button
@@ -153,9 +160,9 @@ export function LoansStep() {
             <Card className="bg-muted/50">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">Gesamte Finanzierung</span>
+                  <span className="font-medium">{t("wizard.loans.totalFinancing")}</span>
                   <span className="font-bold text-lg">
-                    {totalLoanAmount.toLocaleString("de-DE")} €
+                    {formatCurrency(totalLoanAmount)} €
                   </span>
                 </div>
               </CardContent>
@@ -163,31 +170,26 @@ export function LoansStep() {
           </div>
         )}
 
-        {/* Add Loan Form */}
         {showForm ? (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Neues Darlehen hinzufügen</CardTitle>
-              <CardDescription>
-                Geben Sie die Konditionen Ihres Darlehens ein
-              </CardDescription>
+              <CardTitle className="text-lg">{t("wizard.loans.addLoan")}</CardTitle>
+              <CardDescription>{t("wizard.loans.addLoanDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="loanName">Bezeichnung</Label>
+                  <Label htmlFor="loanName">{t("wizard.loans.name")}</Label>
                   <Input
                     id="loanName"
-                    placeholder="z.B. KfW-Gründerkredit, Hausbank"
+                    placeholder={t("wizard.loans.namePlaceholder")}
                     value={newLoan.name}
-                    onChange={(e) =>
-                      setNewLoan({ ...newLoan, name: e.target.value })
-                    }
+                    onChange={(e) => setNewLoan({ ...newLoan, name: e.target.value })}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="loanAmount">Darlehenssumme (€)</Label>
+                  <Label htmlFor="loanAmount">{t("wizard.loans.loanAmount")}</Label>
                   <Input
                     id="loanAmount"
                     type="number"
@@ -204,7 +206,7 @@ export function LoansStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="interestRate">Zinssatz (% p.a.)</Label>
+                  <Label htmlFor="interestRate">{t("wizard.loans.interestRate")}</Label>
                   <Input
                     id="interestRate"
                     type="number"
@@ -222,7 +224,7 @@ export function LoansStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="termMonths">Laufzeit (Monate)</Label>
+                  <Label htmlFor="termMonths">{t("wizard.loans.termMonths")}</Label>
                   <Input
                     id="termMonths"
                     type="number"
@@ -239,19 +241,17 @@ export function LoansStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="startMonth">Startmonat</Label>
+                  <Label htmlFor="startMonth">{t("wizard.loans.startMonth")}</Label>
                   <Input
                     id="startMonth"
                     type="month"
                     value={newLoan.startMonth}
-                    onChange={(e) =>
-                      setNewLoan({ ...newLoan, startMonth: e.target.value })
-                    }
+                    onChange={(e) => setNewLoan({ ...newLoan, startMonth: e.target.value })}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="gracePeriod">Tilgungsfreie Zeit (Monate)</Label>
+                  <Label htmlFor="gracePeriod">{t("wizard.loans.gracePeriod")}</Label>
                   <Input
                     id="gracePeriod"
                     type="number"
@@ -269,14 +269,13 @@ export function LoansStep() {
                 </div>
               </div>
 
-              {/* Payment Preview */}
               {previewMonthlyPayment > 0 && (
                 <Card className="bg-muted/50">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm">Geschätzte monatliche Rate:</span>
+                      <span className="text-sm">{t("wizard.loans.estimatedMonthly")}</span>
                       <span className="font-semibold">
-                        {previewMonthlyPayment.toLocaleString("de-DE")} €
+                        {formatCurrency(previewMonthlyPayment)} €
                       </span>
                     </div>
                   </CardContent>
@@ -284,9 +283,9 @@ export function LoansStep() {
               )}
 
               <div className="flex gap-2">
-                <Button onClick={handleAddLoan}>Hinzufügen</Button>
+                <Button onClick={handleAddLoan}>{t("common.add")}</Button>
                 <Button variant="outline" onClick={() => setShowForm(false)}>
-                  Abbrechen
+                  {t("common.cancel")}
                 </Button>
               </div>
             </CardContent>
@@ -298,17 +297,15 @@ export function LoansStep() {
             onClick={() => setShowForm(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Darlehen hinzufügen
+            {t("wizard.loans.addLoan")}
           </Button>
         )}
 
         {loansList.length === 0 && !showForm && (
           <div className="text-center py-8 text-muted-foreground">
             <Landmark className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Noch keine Finanzierungen erfasst.</p>
-            <p className="text-sm">
-              Sie können diesen Schritt überspringen, wenn keine Kredite geplant sind.
-            </p>
+            <p>{t("wizard.loans.noLoans")}</p>
+            <p className="text-sm">{t("wizard.loans.canSkipLoans")}</p>
           </div>
         )}
       </div>

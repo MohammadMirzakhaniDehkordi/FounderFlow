@@ -85,7 +85,7 @@ export function LiquidityChart({ data }: LiquidityChartProps) {
               <Area
                 type="monotone"
                 dataKey="endBalance"
-                name="Kontostand"
+                name={t("cashflowTable.accountBalance")}
                 stroke="hsl(var(--primary))"
                 fillOpacity={1}
                 fill="url(#colorBalance)"

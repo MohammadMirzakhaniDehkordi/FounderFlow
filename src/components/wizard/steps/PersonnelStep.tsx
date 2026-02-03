@@ -11,9 +11,12 @@ import { WizardLayout } from "../WizardLayout";
 import { useWizardStore } from "@/lib/store/wizardStore";
 import type { Employee } from "@/lib/types";
 import { Plus, Trash2, User, Users } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 export function PersonnelStep() {
-  const { personnel, plan, addEmployee, removeEmployee, updateEmployee } = useWizardStore();
+  const { personnel, plan, addEmployee, removeEmployee } = useWizardStore();
+  const { t, locale } = useTranslation();
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
   const [showForm, setShowForm] = useState(false);
   const [newEmployee, setNewEmployee] = useState<Partial<Employee>>({
     role: "",
@@ -50,9 +53,7 @@ export function PersonnelStep() {
   return (
     <WizardLayout>
       <div className="space-y-6">
-        <p className="text-muted-foreground">
-          Fügen Sie alle geplanten Mitarbeiter hinzu, einschließlich Ihres eigenen Geschäftsführer-Gehalts.
-        </p>
+        <p className="text-muted-foreground">{t("wizard.personnel.intro")}</p>
 
         {/* Employee List */}
         {employees.length > 0 && (
@@ -69,11 +70,15 @@ export function PersonnelStep() {
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{employee.role}</span>
                           {employee.isGeschaeftsfuehrer && (
-                            <Badge variant="secondary">Geschäftsführer</Badge>
+                            <Badge variant="secondary">{t("wizard.personnel.managingDirector")}</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Ab {employee.startMonth} • {employee.monthlySalary.toLocaleString("de-DE")} €/Monat
+                          {t("wizard.personnel.employeeInfo", {
+                            month: employee.startMonth,
+                            amount: employee.monthlySalary.toLocaleString(numberLocale),
+                            perMonth: t("common.perMonth"),
+                          })}
                         </p>
                       </div>
                     </div>
@@ -97,18 +102,18 @@ export function PersonnelStep() {
                       <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <span className="font-medium">Gesamte Personalkosten</span>
+                    <span className="font-medium">{t("wizard.personnel.totalCosts")}</span>
                       <p className="text-sm text-muted-foreground">
-                        {employees.length} Mitarbeiter
+                      {employees.length} {t("wizard.personnel.employeesCount")}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-lg">
-                      {totalMonthlyCost.toLocaleString("de-DE")} €/Monat
+                    {totalMonthlyCost.toLocaleString(numberLocale)} {t("common.perMonth")}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {(totalMonthlyCost * 12).toLocaleString("de-DE")} €/Jahr
+                    {(totalMonthlyCost * 12).toLocaleString(numberLocale)} {t("common.perYear")}
                     </p>
                   </div>
                 </div>
@@ -121,22 +126,22 @@ export function PersonnelStep() {
         {showForm ? (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Neuen Mitarbeiter hinzufügen</CardTitle>
+              <CardTitle className="text-lg">{t("wizard.personnel.addEmployee")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="role">Rolle / Position</Label>
+                  <Label htmlFor="role">{t("wizard.personnel.role")}</Label>
                   <Input
                     id="role"
-                    placeholder="z.B. Entwickler, Marketing Manager"
+                    placeholder={t("wizard.personnel.rolePlaceholder")}
                     value={newEmployee.role}
                     onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
                     className="mt-1"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="salary">Monatsgehalt (Brutto) (€)</Label>
+                  <Label htmlFor="salary">{t("wizard.personnel.monthlySalary")}</Label>
                   <Input
                     id="salary"
                     type="number"
@@ -153,7 +158,7 @@ export function PersonnelStep() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="startMonth">Startmonat</Label>
+                  <Label htmlFor="startMonth">{t("wizard.personnel.startMonth")}</Label>
                   <Input
                     id="startMonth"
                     type="month"
@@ -176,14 +181,14 @@ export function PersonnelStep() {
                     }
                   />
                   <Label htmlFor="isGf" className="text-sm">
-                    Geschäftsführer-Gehalt (nicht sozialversicherungspflichtig)
+                    {t("wizard.personnel.isManagingDirector")}
                   </Label>
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleAddEmployee}>Hinzufügen</Button>
+                <Button onClick={handleAddEmployee}>{t("common.add")}</Button>
                 <Button variant="outline" onClick={() => setShowForm(false)}>
-                  Abbrechen
+                  {t("common.cancel")}
                 </Button>
               </div>
             </CardContent>
@@ -195,17 +200,15 @@ export function PersonnelStep() {
             onClick={() => setShowForm(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Mitarbeiter hinzufügen
+            {t("wizard.personnel.addEmployee")}
           </Button>
         )}
 
         {employees.length === 0 && !showForm && (
           <div className="text-center py-8 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Noch keine Mitarbeiter hinzugefügt.</p>
-            <p className="text-sm">
-              Klicken Sie auf "Mitarbeiter hinzufügen" um zu beginnen.
-            </p>
+            <p>{t("wizard.personnel.noEmployees")}</p>
+            <p className="text-sm">{t("wizard.personnel.clickToAdd")}</p>
           </div>
         )}
       </div>

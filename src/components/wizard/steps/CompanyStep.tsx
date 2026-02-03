@@ -25,12 +25,14 @@ import { useWizardStore } from "@/lib/store/wizardStore";
 import { companySchema, planSchema, CompanyFormData, PlanFormData } from "@/lib/schemas/wizard";
 import { HEBESATZ_DATA } from "@/lib/calculations/taxes";
 import { z } from "zod";
+import { useTranslation } from "@/lib/i18n";
 
 const combinedSchema = companySchema.merge(planSchema);
 type CombinedFormData = z.infer<typeof combinedSchema>;
 
 export function CompanyStep() {
   const { company, plan, updateCompany, updatePlan } = useWizardStore();
+  const { t } = useTranslation();
 
   const form = useForm<CombinedFormData>({
     resolver: zodResolver(combinedSchema),
@@ -78,11 +80,11 @@ export function CompanyStep() {
               name="companyName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Firmenname</FormLabel>
+                  <FormLabel>{t("wizard.company.companyName")}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Meine UG (haftungsbeschränkt)" {...field} />
+                    <Input placeholder={t("wizard.company.companyNamePlaceholder")} {...field} />
                   </FormControl>
-                  <FormDescription>Der vollständige Name Ihrer UG</FormDescription>
+                  <FormDescription>{t("wizard.company.companyNameDesc")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -94,7 +96,7 @@ export function CompanyStep() {
               name="foundingDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gründungsdatum</FormLabel>
+                  <FormLabel>{t("wizard.company.foundingDate")}</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -109,7 +111,7 @@ export function CompanyStep() {
               name="stammkapital"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Stammkapital (€)</FormLabel>
+                  <FormLabel>{t("wizard.company.stammkapital")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -119,7 +121,7 @@ export function CompanyStep() {
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
-                  <FormDescription>Mindestens 1€ für eine UG</FormDescription>
+                  <FormDescription>{t("wizard.company.stammkapitalDesc")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -131,14 +133,14 @@ export function CompanyStep() {
               name="hebesatz"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gewerbesteuer-Hebesatz</FormLabel>
+                  <FormLabel>{t("wizard.company.hebesatz")}</FormLabel>
                   <Select
                     onValueChange={(value) => field.onChange(parseInt(value))}
                     defaultValue={field.value?.toString()}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Stadt wählen oder Wert eingeben" />
+                        <SelectValue placeholder={t("wizard.company.hebesatzPlaceholder")} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -150,7 +152,7 @@ export function CompanyStep() {
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Oder direkt eingeben:{" "}
+                    {t("wizard.company.orEnterDirect")}{" "}
                     <Input
                       type="number"
                       className="inline-block w-20 h-6 text-xs"
@@ -171,7 +173,7 @@ export function CompanyStep() {
               name="kontokorrent"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Kontokorrentkredit (€)</FormLabel>
+                  <FormLabel>{t("wizard.company.kontokorrent")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -181,7 +183,7 @@ export function CompanyStep() {
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
-                  <FormDescription>Verfügbarer Überziehungsrahmen</FormDescription>
+                  <FormDescription>{t("wizard.company.kontokorrentDesc")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -193,7 +195,7 @@ export function CompanyStep() {
               name="startingLiquidity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Anfangsliquidität (€)</FormLabel>
+                  <FormLabel>{t("wizard.company.startingLiquidity")}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -203,7 +205,7 @@ export function CompanyStep() {
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
-                  <FormDescription>Bargeld/Bankguthaben zu Beginn</FormDescription>
+                  <FormDescription>{t("wizard.company.startingLiquidityDesc")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -211,7 +213,7 @@ export function CompanyStep() {
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="font-medium mb-4">Planungsdetails</h3>
+            <h3 className="font-medium mb-4">{t("wizard.company.planDetails")}</h3>
             <div className="grid md:grid-cols-2 gap-6">
               {/* Plan Name */}
               <FormField
@@ -219,9 +221,9 @@ export function CompanyStep() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Planname</FormLabel>
+                    <FormLabel>{t("wizard.company.planName")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Finanzplan 2026-2028" {...field} />
+                      <Input placeholder={t("wizard.company.planNamePlaceholder")} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -234,7 +236,7 @@ export function CompanyStep() {
                 name="startYear"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Startjahr</FormLabel>
+                    <FormLabel>{t("wizard.company.startYear")}</FormLabel>
                     <Select
                       onValueChange={(value) => field.onChange(parseInt(value))}
                       defaultValue={field.value?.toString()}
@@ -252,7 +254,7 @@ export function CompanyStep() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormDescription>Der Plan umfasst 3 Jahre</FormDescription>
+                    <FormDescription>{t("wizard.company.planCovers3Years")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
