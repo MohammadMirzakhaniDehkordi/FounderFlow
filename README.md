@@ -1,36 +1,169 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FounderFlow - Finanzplanung für deutsche UG
 
-## Getting Started
+Eine Web-Anwendung zur automatisierten Finanzplanung für deutsche Unternehmergesellschaften (UG). FounderFlow ersetzt komplexe Excel-Tabellen durch eine einfache, interviewbasierte Benutzeroberfläche.
 
-First, run the development server:
+## Features
 
+- **Interview-basierte Eingabe**: Schritt-für-Schritt Assistent ohne Formeln
+- **Automatische Berechnungen**: Körperschaftsteuer, Gewerbesteuer, Solidaritätszuschlag, UG-Rücklage
+- **3-Jahres-Planung**: Monatliche Liquiditätsplanung über 3 Jahre
+- **Bankfähige Exports**: BWA und Liquiditätsplan als PDF im Standardformat
+- **Darlehensberechnung**: Tilgungspläne mit tilgungsfreier Zeit
+
+## Tech Stack
+
+- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui
+- **State**: Zustand (lokal), React Query (Server)
+- **Backend**: Firebase (Firestore, Auth, Cloud Functions)
+- **Charts**: Recharts
+- **PDF**: @react-pdf/renderer
+
+## Erste Schritte
+
+### Voraussetzungen
+
+- Node.js 18+
+- npm
+- Firebase-Projekt
+
+### Installation
+
+1. Repository klonen:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd founderflow
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Abhängigkeiten installieren:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Umgebungsvariablen konfigurieren:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Tragen Sie Ihre Firebase-Konfiguration in `.env.local` ein:
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
+```
 
-## Learn More
+4. Entwicklungsserver starten:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Die Anwendung ist unter [http://localhost:3000](http://localhost:3000) verfügbar.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Firebase-Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Firestore
 
-## Deploy on Vercel
+Erstellen Sie eine Firestore-Datenbank und aktivieren Sie folgende Regeln:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /companies/{companyId} {
+      allow read, write: if request.auth != null && 
+        resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null;
+      
+      match /plans/{planId} {
+        allow read, write: if request.auth != null;
+        
+        match /{subcollection}/{document} {
+          allow read, write: if request.auth != null;
+        }
+      }
+    }
+  }
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Authentication
+
+Aktivieren Sie folgende Anmeldeverfahren:
+- E-Mail/Passwort
+- Google
+
+## Projektstruktur
+
+```
+/src
+  /app                    # Next.js App Router
+    /(auth)               # Authentifizierungsseiten
+    /(dashboard)          # Geschützte Seiten
+  /components
+    /ui                   # shadcn/ui Komponenten
+    /wizard               # Wizard-Schritte
+    /dashboard            # Dashboard-Komponenten
+    /pdf                  # PDF-Templates
+    /providers            # React Context Provider
+  /lib
+    /calculations         # Berechnungslogik
+      /taxes.ts           # Steuerberechnungen
+      /loans.ts           # Darlehensberechnungen
+      /liquidity.ts       # Liquiditätsberechnung
+      /bwa.ts             # BWA-Generierung
+    /firebase             # Firebase-Konfiguration
+    /store                # Zustand Store
+    /schemas              # Zod Validierung
+    /types                # TypeScript-Typen
+    /utils                # Hilfsfunktionen
+```
+
+## Finanzielle Berechnungen
+
+### Steuerberechnung für UG
+
+```typescript
+// Körperschaftsteuer: 15%
+const koerperschaftsteuer = gewinn * 0.15;
+
+// Solidaritätszuschlag: 5.5% der KSt
+const solidaritaetszuschlag = koerperschaftsteuer * 0.055;
+
+// Gewerbesteuer: Gewinn × 3.5% × (Hebesatz / 100)
+// Hinweis: UG hat KEINEN Gewerbesteuerfreibetrag
+const gewerbesteuer = gewinn * 0.035 * (hebesatz / 100);
+```
+
+### UG-Rücklage
+
+Eine UG muss 25% des Jahresgewinns als Rücklage einbehalten, bis das Stammkapital 25.000€ erreicht:
+
+```typescript
+const ruecklage = Math.min(
+  jahresgewinn * 0.25,
+  Math.max(0, 25000 - aktuellesStammkapital)
+);
+```
+
+## Scripts
+
+```bash
+npm run dev       # Entwicklungsserver
+npm run build     # Produktions-Build
+npm run start     # Produktions-Server
+npm run lint      # ESLint
+```
+
+## Lizenz
+
+MIT
+
+## Beitragen
+
+Pull Requests sind willkommen. Für größere Änderungen öffnen Sie bitte zuerst ein Issue.
