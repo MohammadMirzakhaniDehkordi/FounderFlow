@@ -43,21 +43,46 @@ export async function signInWithGoogle() {
     const user = result.user;
     console.log("[Auth] User authenticated:", user.email);
     
-    // Check if user document exists, if not create it
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (!userDoc.exists()) {
-      console.log("[Auth] Creating new user document in Firestore");
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        displayName: user.displayName,
-        createdAt: serverTimestamp(),
-      });
-    }
+    // Try to create/update user document with retry logic
+    // This handles the case where Firestore isn't ready immediately
+    await createUserDocumentWithRetry(user);
+    
     return user;
   } catch (error: unknown) {
     const firebaseError = error as { code?: string; message?: string };
     console.error("[Auth] Google Sign-In error:", firebaseError.code, firebaseError.message);
     throw error;
+  }
+}
+
+// Helper function to create user document with retry
+async function createUserDocumentWithRetry(user: User, maxRetries = 3): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        console.log("[Auth] Creating new user document in Firestore");
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          displayName: user.displayName,
+          createdAt: serverTimestamp(),
+        });
+      }
+      return; // Success
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string };
+      console.warn(`[Auth] Firestore attempt ${attempt}/${maxRetries} failed:`, firebaseError.code);
+      
+      if (attempt === maxRetries) {
+        // Don't throw on last attempt - user is already authenticated
+        // The document can be created later
+        console.warn("[Auth] Could not create user document, but sign-in succeeded");
+        return;
+      }
+      
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+    }
   }
 }
 
