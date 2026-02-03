@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { TFunction } from "@/lib/i18n";
 
 export const loginSchema = z.object({
   email: z.string().email("Bitte geben Sie eine gültige E-Mail-Adresse ein"),
@@ -18,6 +19,31 @@ export const registerSchema = z.object({
 export const resetPasswordSchema = z.object({
   email: z.string().email("Bitte geben Sie eine gültige E-Mail-Adresse ein"),
 });
+
+export function getLoginSchema(t: TFunction) {
+  return z.object({
+    email: z.string().email(t("auth.validation.emailInvalid")),
+    password: z.string().min(6, t("auth.validation.passwordMin")),
+  });
+}
+
+export function getRegisterSchema(t: TFunction) {
+  return z.object({
+    displayName: z.string().min(2, t("auth.validation.nameMin")),
+    email: z.string().email(t("auth.validation.emailInvalid")),
+    password: z.string().min(6, t("auth.validation.passwordMin")),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t("auth.validation.passwordsMismatch"),
+    path: ["confirmPassword"],
+  });
+}
+
+export function getResetPasswordSchema(t: TFunction) {
+  return z.object({
+    email: z.string().email(t("auth.validation.emailInvalid")),
+  });
+}
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;

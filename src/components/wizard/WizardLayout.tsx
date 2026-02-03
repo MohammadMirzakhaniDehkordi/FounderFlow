@@ -7,15 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useWizardStore } from "@/lib/store/wizardStore";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-const STEPS = [
-  { title: "Firma", description: "Grunddaten Ihrer UG" },
-  { title: "Umsatz", description: "Umsatzplanung" },
-  { title: "Personal", description: "Mitarbeiter & Gehälter" },
-  { title: "Betriebskosten", description: "Laufende Kosten" },
-  { title: "Investitionen", description: "Einmalige Ausgaben" },
-  { title: "Finanzierung", description: "Darlehen & Kredite" },
-  { title: "Übersicht", description: "Zusammenfassung" },
+const STEP_KEYS = [
+  { titleKey: "wizard.steps.company", descKey: "wizard.steps.companyDesc" },
+  { titleKey: "wizard.steps.revenue", descKey: "wizard.steps.revenueDesc" },
+  { titleKey: "wizard.steps.personnel", descKey: "wizard.steps.personnelDesc" },
+  { titleKey: "wizard.steps.operatingCosts", descKey: "wizard.steps.operatingCostsDesc" },
+  { titleKey: "wizard.steps.investments", descKey: "wizard.steps.investmentsDesc" },
+  { titleKey: "wizard.steps.loans", descKey: "wizard.steps.loansDesc" },
+  { titleKey: "wizard.steps.review", descKey: "wizard.steps.reviewDesc" },
 ];
 
 interface WizardLayoutProps {
@@ -31,12 +33,14 @@ export function WizardLayout({
   children,
   onNext,
   onPrev,
-  nextLabel = "Weiter",
+  nextLabel,
   nextDisabled = false,
   showBack = true,
 }: WizardLayoutProps) {
+  const { t } = useTranslation();
   const { currentStep, nextStep, prevStep } = useWizardStore();
-  const progress = ((currentStep + 1) / STEPS.length) * 100;
+  const progress = ((currentStep + 1) / STEP_KEYS.length) * 100;
+  const defaultNextLabel = t("common.next");
 
   const handleNext = async () => {
     if (onNext) {
@@ -55,14 +59,17 @@ export function WizardLayout({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8">
       <div className="container mx-auto px-4 max-w-4xl">
+        <div className="flex justify-end mb-4">
+          <LanguageSwitcher />
+        </div>
         {/* Progress */}
         <div className="mb-8">
           <div className="flex justify-between mb-2">
             <span className="text-sm text-muted-foreground">
-              Schritt {currentStep + 1} von {STEPS.length}
+              {t("wizard.step")} {currentStep + 1} {t("wizard.of")} {STEP_KEYS.length}
             </span>
             <span className="text-sm text-muted-foreground">
-              {Math.round(progress)}% abgeschlossen
+              {Math.round(progress)}% {t("wizard.completed")}
             </span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -70,7 +77,7 @@ export function WizardLayout({
 
         {/* Step indicators */}
         <div className="hidden md:flex justify-between mb-8">
-          {STEPS.map((step, index) => (
+          {STEP_KEYS.map((step, index) => (
             <div
               key={index}
               className={cn(
@@ -94,7 +101,7 @@ export function WizardLayout({
                   index + 1
                 )}
               </div>
-              <span className="text-xs mt-1 hidden lg:block">{step.title}</span>
+              <span className="text-xs mt-1 hidden lg:block">{t(step.titleKey)}</span>
             </div>
           ))}
         </div>
@@ -102,8 +109,8 @@ export function WizardLayout({
         {/* Content */}
         <Card>
           <CardHeader>
-            <CardTitle>{STEPS[currentStep].title}</CardTitle>
-            <CardDescription>{STEPS[currentStep].description}</CardDescription>
+            <CardTitle>{t(STEP_KEYS[currentStep].titleKey)}</CardTitle>
+            <CardDescription>{t(STEP_KEYS[currentStep].descKey)}</CardDescription>
           </CardHeader>
           <CardContent>{children}</CardContent>
         </Card>
@@ -117,17 +124,17 @@ export function WizardLayout({
             className={cn(currentStep === 0 && "invisible")}
           >
             <ChevronLeft className="mr-2 h-4 w-4" />
-            Zurück
+            {t("wizard.back")}
           </Button>
 
-          {currentStep < STEPS.length - 1 ? (
+          {currentStep < STEP_KEYS.length - 1 ? (
             <Button onClick={handleNext} disabled={nextDisabled}>
-              {nextLabel}
+              {nextLabel ?? defaultNextLabel}
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           ) : (
             <Button onClick={handleNext} disabled={nextDisabled}>
-              {nextLabel}
+              {nextLabel ?? defaultNextLabel}
             </Button>
           )}
         </div>

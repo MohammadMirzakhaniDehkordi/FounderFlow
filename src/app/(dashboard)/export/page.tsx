@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, Suspense } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { generateBWA } from "@/lib/calculations/bwa";
 import type { LiquidityResult } from "@/lib/calculations/liquidity";
 import type { Company, BWAData } from "@/lib/types";
 import { ArrowLeft, Download, FileText, Loader2 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface StoredResult {
   company: Partial<Company>;
@@ -23,7 +24,7 @@ interface StoredResult {
 }
 
 // Lazy load PDF components
-function PdfDownloadButtons({ result, bwaData }: { result: StoredResult; bwaData: BWAData }) {
+function PdfDownloadButtons({ result, bwaData, t }: { result: StoredResult; bwaData: BWAData; t: (k: string) => string }) {
   const [PDFDownloadLink, setPDFDownloadLink] = useState<React.ComponentType<any> | null>(null);
   const [BWAPdfComponent, setBWAPdfComponent] = useState<React.ComponentType<any> | null>(null);
   const [LiquidityPdfComponent, setLiquidityPdfComponent] = useState<React.ComponentType<any> | null>(null);
@@ -56,7 +57,7 @@ function PdfDownloadButtons({ result, bwaData }: { result: StoredResult; bwaData
       <div className="flex gap-2">
         <Button variant="outline" disabled>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          PDF wird geladen...
+          {t("export.loadingPdf")}
         </Button>
       </div>
     );
@@ -75,7 +76,7 @@ function PdfDownloadButtons({ result, bwaData }: { result: StoredResult; bwaData
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            BWA herunterladen
+            {t("export.downloadBWA")}
           </Button>
         )}
       </PDFDownloadLink>
@@ -83,7 +84,7 @@ function PdfDownloadButtons({ result, bwaData }: { result: StoredResult; bwaData
       <PDFDownloadLink
         document={
           <LiquidityPdfComponent
-            companyName={result.company.companyName || "Meine UG"}
+            companyName={result.company.companyName || t("export.myUG")}
             startYear={result.plan.startYear}
             months={result.liquidityResult.months}
             yearSummaries={result.liquidityResult.yearSummaries}
@@ -99,7 +100,7 @@ function PdfDownloadButtons({ result, bwaData }: { result: StoredResult; bwaData
             ) : (
               <Download className="mr-2 h-4 w-4" />
             )}
-            Liquiditaetsplan herunterladen
+            {t("export.downloadLiquidity")}
           </Button>
         )}
       </PDFDownloadLink>
@@ -108,7 +109,9 @@ function PdfDownloadButtons({ result, bwaData }: { result: StoredResult; bwaData
 }
 
 export default function ExportPage() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
   const [result, setResult] = useState<StoredResult | null>(null);
   const [isClient, setIsClient] = useState(false);
 
@@ -126,11 +129,11 @@ export default function ExportPage() {
     if (!result) return null;
 
     return generateBWA({
-      companyName: result.company.companyName || "Meine UG",
+      companyName: result.company.companyName || t("export.myUG"),
       startYear: result.plan.startYear,
       liquidityResult: result.liquidityResult,
     });
-  }, [result]);
+  }, [result, t]);
 
   if (!isClient || !result || !bwaData) {
     return (
@@ -141,7 +144,7 @@ export default function ExportPage() {
   }
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("de-DE", {
+    new Intl.NumberFormat(numberLocale, {
       style: "currency",
       currency: "EUR",
       minimumFractionDigits: 2,
@@ -156,12 +159,12 @@ export default function ExportPage() {
             <Link href="/dashboard">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                Zurueck
+                {t("export.back")}
               </Button>
             </Link>
             <Separator orientation="vertical" className="h-6" />
             <div>
-              <h1 className="font-semibold">PDF Export</h1>
+              <h1 className="font-semibold">{t("export.pdfExport")}</h1>
               <p className="text-xs text-muted-foreground">{result.company.companyName}</p>
             </div>
           </div>
@@ -173,19 +176,19 @@ export default function ExportPage() {
         <Tabs defaultValue="bwa">
           <div className="flex items-center justify-between mb-6">
             <TabsList>
-              <TabsTrigger value="bwa">BWA</TabsTrigger>
-              <TabsTrigger value="liquidity">Liquiditaetsplan</TabsTrigger>
+              <TabsTrigger value="bwa">{t("export.bwaTab")}</TabsTrigger>
+              <TabsTrigger value="liquidity">{t("export.liquidityTab")}</TabsTrigger>
             </TabsList>
 
-            <PdfDownloadButtons result={result} bwaData={bwaData} />
+            <PdfDownloadButtons result={result} bwaData={bwaData} t={t} />
           </div>
 
           <TabsContent value="bwa">
             <Card>
               <CardHeader>
-                <CardTitle>Rentabilitaetsvorschau (BWA)</CardTitle>
+                <CardTitle>{t("export.profitabilityTitle")}</CardTitle>
                 <CardDescription>
-                  Betriebswirtschaftliche Auswertung fuer {result.plan.startYear} - {result.plan.startYear + 2}
+                  {t("export.profitabilityDesc")} {result.plan.startYear} - {result.plan.startYear + 2}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -194,12 +197,12 @@ export default function ExportPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b bg-muted">
-                        <th className="text-left p-2 w-[25%]">Position</th>
-                        <th className="text-right p-2">Jahr {bwaData.years[0]}</th>
+                        <th className="text-left p-2 w-[25%]">{t("export.position")}</th>
+                        <th className="text-right p-2">{t("common.year")} {bwaData.years[0]}</th>
                         <th className="text-right p-2 text-muted-foreground">%</th>
-                        <th className="text-right p-2">Jahr {bwaData.years[1]}</th>
+                        <th className="text-right p-2">{t("common.year")} {bwaData.years[1]}</th>
                         <th className="text-right p-2 text-muted-foreground">%</th>
-                        <th className="text-right p-2">Jahr {bwaData.years[2]}</th>
+                        <th className="text-right p-2">{t("common.year")} {bwaData.years[2]}</th>
                         <th className="text-right p-2 text-muted-foreground">%</th>
                       </tr>
                     </thead>
@@ -238,7 +241,7 @@ export default function ExportPage() {
                 </div>
 
                 <div className="mt-4 text-xs text-muted-foreground">
-                  <p>Alle Werte sind ohne Mehrwertsteuer. Die Steuerberechnung ist ein Richtwert.</p>
+                  <p>{t("export.allValuesNote")}</p>
                 </div>
               </CardContent>
             </Card>
@@ -247,9 +250,9 @@ export default function ExportPage() {
           <TabsContent value="liquidity">
             <Card>
               <CardHeader>
-                <CardTitle>Liquiditaetsplan</CardTitle>
+                <CardTitle>{t("export.liquidityPlanTitle")}</CardTitle>
                 <CardDescription>
-                  Monatliche Cashflow-Uebersicht fuer {result.plan.startYear} - {result.plan.startYear + 2}
+                  {t("export.liquidityPlanDesc")} {result.plan.startYear} - {result.plan.startYear + 2}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -265,13 +268,13 @@ export default function ExportPage() {
                       <div key={year}>
                         <h3 className="font-semibold mb-4 flex items-center gap-2">
                           <FileText className="h-4 w-4" />
-                          Jahr {year}
+                          {t("common.year")} {year}
                         </h3>
 
                         <div className="grid grid-cols-4 gap-4 mb-4">
                           <Card>
                             <CardContent className="p-3">
-                              <p className="text-xs text-muted-foreground">Anfangsbestand</p>
+                              <p className="text-xs text-muted-foreground">{t("export.openingBalance")}</p>
                               <p className="font-semibold">
                                 {formatCurrency(yearMonths[0]?.[1]?.startBalance || 0)}
                               </p>
@@ -279,7 +282,7 @@ export default function ExportPage() {
                           </Card>
                           <Card>
                             <CardContent className="p-3">
-                              <p className="text-xs text-muted-foreground">Einnahmen</p>
+                              <p className="text-xs text-muted-foreground">{t("export.revenue")}</p>
                               <p className="font-semibold text-green-600">
                                 {formatCurrency(summary?.totalRevenue || 0)}
                               </p>
@@ -287,7 +290,7 @@ export default function ExportPage() {
                           </Card>
                           <Card>
                             <CardContent className="p-3">
-                              <p className="text-xs text-muted-foreground">Ausgaben</p>
+                              <p className="text-xs text-muted-foreground">{t("export.expenses")}</p>
                               <p className="font-semibold text-red-600">
                                 {formatCurrency(summary?.totalCosts || 0)}
                               </p>
@@ -295,7 +298,7 @@ export default function ExportPage() {
                           </Card>
                           <Card>
                             <CardContent className="p-3">
-                              <p className="text-xs text-muted-foreground">Endbestand</p>
+                              <p className="text-xs text-muted-foreground">{t("export.closingBalance")}</p>
                               <p className={`font-semibold ${(summary?.endLiquidity || 0) < 0 ? "text-red-600" : ""}`}>
                                 {formatCurrency(summary?.endLiquidity || 0)}
                               </p>
@@ -307,11 +310,11 @@ export default function ExportPage() {
                           <table className="w-full text-xs">
                             <thead>
                               <tr className="border-b bg-muted">
-                                <th className="text-left p-2">Monat</th>
-                                <th className="text-right p-2">Umsatz</th>
-                                <th className="text-right p-2">Ausgaben</th>
-                                <th className="text-right p-2">Saldo</th>
-                                <th className="text-right p-2">Kontostand</th>
+                                <th className="text-left p-2">{t("export.month")}</th>
+                                <th className="text-right p-2">{t("export.revenue")}</th>
+                                <th className="text-right p-2">{t("export.expenses")}</th>
+                                <th className="text-right p-2">{t("common.balance")}</th>
+                                <th className="text-right p-2">{t("common.accountBalance")}</th>
                               </tr>
                             </thead>
                             <tbody>

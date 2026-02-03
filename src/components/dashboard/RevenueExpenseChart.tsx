@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { YearSummary } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n";
 
 interface RevenueExpenseChartProps {
   data: Record<number, YearSummary>;
@@ -19,14 +20,16 @@ interface RevenueExpenseChartProps {
 }
 
 export function RevenueExpenseChart({ data, startYear }: RevenueExpenseChartProps) {
+  const { t } = useTranslation();
+
   const chartData = [0, 1, 2].map((i) => {
     const year = startYear + i;
     const summary = data[year];
     return {
-      year: `Jahr ${year}`,
-      Umsatz: summary?.totalRevenue || 0,
-      Kosten: summary?.totalCosts || 0,
-      Gewinn: summary?.netProfit || 0,
+      year: `${t("common.year")} ${year}`,
+      [t("charts.revenue")]: summary?.totalRevenue || 0,
+      [t("charts.costs")]: summary?.totalCosts || 0,
+      [t("charts.profit")]: summary?.netProfit || 0,
     };
   });
 
@@ -43,8 +46,8 @@ export function RevenueExpenseChart({ data, startYear }: RevenueExpenseChartProp
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Umsatz & Kosten</CardTitle>
-        <CardDescription>Jahresvergleich</CardDescription>
+        <CardTitle>{t("charts.revenueExpenseTitle")}</CardTitle>
+        <CardDescription>{t("charts.revenueExpenseDesc")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] min-h-[300px]">
@@ -65,9 +68,9 @@ export function RevenueExpenseChart({ data, startYear }: RevenueExpenseChartProp
                 }}
               />
               <Legend />
-              <Bar dataKey="Umsatz" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Kosten" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Gewinn" fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey={t("charts.revenue")} fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey={t("charts.costs")} fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+              <Bar dataKey={t("charts.profit")} fill="hsl(var(--chart-3))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

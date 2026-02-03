@@ -31,6 +31,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface StoredResult {
   company: Partial<Company>;
@@ -43,6 +45,7 @@ interface StoredResult {
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const { user, logout } = useAuthContext();
   const router = useRouter();
   const [result, setResult] = useState<StoredResult | null>(null);
@@ -82,11 +85,12 @@ export default function DashboardPage() {
             <span className="font-bold text-xl">FounderFlow</span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             <Link href="/new-plan">
               <Button size="sm">
                 <Plus className="mr-2 h-4 w-4" />
-                Neuer Plan
+                {t("dashboard.newPlan")}
               </Button>
             </Link>
 
@@ -104,7 +108,7 @@ export default function DashboardPage() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
-                      {user?.displayName || "Benutzer"}
+                      {user?.displayName || t("common.user")}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {user?.email}
@@ -114,12 +118,12 @@ export default function DashboardPage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Einstellungen</span>
+                  <span>{t("common.settings")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Abmelden</span>
+                  <span>{t("common.logout")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -150,13 +154,13 @@ export default function DashboardPage() {
                 <Link href="/export">
                   <Button variant="outline">
                     <FileText className="mr-2 h-4 w-4" />
-                    BWA anzeigen
+                    {t("dashboard.showBWA")}
                   </Button>
                 </Link>
                 <Link href="/export">
                   <Button>
                     <Download className="mr-2 h-4 w-4" />
-                    PDF Export
+                    {t("dashboard.pdfExport")}
                   </Button>
                 </Link>
               </div>
@@ -181,8 +185,8 @@ export default function DashboardPage() {
             {/* Detailed Tables */}
             <Tabs defaultValue="cashflow">
               <TabsList>
-                <TabsTrigger value="cashflow">Cashflow</TabsTrigger>
-                <TabsTrigger value="bwa">BWA Vorschau</TabsTrigger>
+                <TabsTrigger value="cashflow">{t("dashboard.cashflow")}</TabsTrigger>
+                <TabsTrigger value="bwa">{t("dashboard.bwaTab")}</TabsTrigger>
               </TabsList>
               <TabsContent value="cashflow" className="mt-4">
                 <CashFlowTable
@@ -193,19 +197,19 @@ export default function DashboardPage() {
               <TabsContent value="bwa" className="mt-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>BWA (Betriebswirtschaftliche Auswertung)</CardTitle>
+                    <CardTitle>{t("dashboard.bwaTitle")}</CardTitle>
                     <CardDescription>
-                      Rentabilitätsvorschau im Bankformat
+                      {t("dashboard.bwaDesc")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">
-                      Die vollständige BWA finden Sie im PDF-Export.
+                      {t("dashboard.bwaFullInPdf")}
                     </p>
                     <Link href="/export" className="mt-4 inline-block">
                       <Button>
                         <FileText className="mr-2 h-4 w-4" />
-                        BWA & Liquiditätsplan exportieren
+                        {t("dashboard.bwaExportBtn")}
                       </Button>
                     </Link>
                   </CardContent>
@@ -219,15 +223,14 @@ export default function DashboardPage() {
             <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
               <FileText className="h-10 w-10 text-primary" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Noch kein Finanzplan</h2>
+            <h2 className="text-2xl font-bold mb-2">{t("dashboard.emptyTitle")}</h2>
             <p className="text-muted-foreground mb-6 max-w-md">
-              Erstellen Sie Ihren ersten Finanzplan in wenigen Minuten mit unserem
-              interaktiven Assistenten.
+              {t("dashboard.emptyDesc")}
             </p>
             <Link href="/new-plan">
               <Button size="lg">
                 <Plus className="mr-2 h-5 w-5" />
-                Ersten Plan erstellen
+                {t("dashboard.createFirstPlan")}
               </Button>
             </Link>
           </div>

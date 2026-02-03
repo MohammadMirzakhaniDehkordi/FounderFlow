@@ -19,27 +19,25 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import type { MonthlyCalculation } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n";
 
 interface CashFlowTableProps {
   data: Record<string, MonthlyCalculation>;
   startYear: number;
 }
 
-const MONTHS_DE = [
-  "Januar", "Februar", "März", "April", "Mai", "Juni",
-  "Juli", "August", "September", "Oktober", "November", "Dezember"
-];
-
 export function CashFlowTable({ data, startYear }: CashFlowTableProps) {
+  const { t, locale } = useTranslation();
   const [selectedYear, setSelectedYear] = useState(startYear.toString());
   const years = [startYear, startYear + 1, startYear + 2];
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
 
   const yearData = Object.entries(data).filter(([month]) =>
     month.startsWith(selectedYear)
   );
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("de-DE", {
+    new Intl.NumberFormat(numberLocale, {
       style: "decimal",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -50,8 +48,8 @@ export function CashFlowTable({ data, startYear }: CashFlowTableProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Monatlicher Cashflow</CardTitle>
-            <CardDescription>Detaillierte Übersicht der Ein- und Auszahlungen</CardDescription>
+            <CardTitle>{t("cashflowTable.title")}</CardTitle>
+            <CardDescription>{t("cashflowTable.desc")}</CardDescription>
           </div>
           <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[120px]">
@@ -72,13 +70,13 @@ export function CashFlowTable({ data, startYear }: CashFlowTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 bg-background">Monat</TableHead>
-                <TableHead className="text-right">Umsatz</TableHead>
-                <TableHead className="text-right">Personal</TableHead>
-                <TableHead className="text-right">Betriebsk.</TableHead>
-                <TableHead className="text-right">Kredite</TableHead>
-                <TableHead className="text-right">Saldo</TableHead>
-                <TableHead className="text-right">Kontostand</TableHead>
+                <TableHead className="sticky left-0 bg-background">{t("cashflowTable.month")}</TableHead>
+                <TableHead className="text-right">{t("cashflowTable.revenue")}</TableHead>
+                <TableHead className="text-right">{t("cashflowTable.personnel")}</TableHead>
+                <TableHead className="text-right">{t("cashflowTable.operatingCosts")}</TableHead>
+                <TableHead className="text-right">{t("cashflowTable.loans")}</TableHead>
+                <TableHead className="text-right">{t("cashflowTable.balance")}</TableHead>
+                <TableHead className="text-right">{t("cashflowTable.accountBalance")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -89,7 +87,7 @@ export function CashFlowTable({ data, startYear }: CashFlowTableProps) {
                 return (
                   <TableRow key={month}>
                     <TableCell className="sticky left-0 bg-background font-medium">
-                      {MONTHS_DE[monthNum - 1]}
+                      {t(`months.${monthNum}`)}
                     </TableCell>
                     <TableCell className="text-right text-green-600">
                       +{formatCurrency(calc.revenue)}

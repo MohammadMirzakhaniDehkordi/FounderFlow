@@ -1,57 +1,39 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Calculator, 
-  FileText, 
-  TrendingUp, 
-  Building2, 
-  Shield, 
+import {
+  Calculator,
+  FileText,
+  TrendingUp,
+  Building2,
+  Shield,
   Zap,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
 } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function LandingPage() {
+  const { t } = useTranslation();
+
   const features = [
-    {
-      icon: Calculator,
-      title: "Automatische Berechnungen",
-      description: "Körperschaftsteuer, Gewerbesteuer und UG-Rücklagen werden automatisch berechnet.",
-    },
-    {
-      icon: FileText,
-      title: "Bankfähige Exports",
-      description: "Generieren Sie professionelle BWA und Liquiditätspläne im Standardformat.",
-    },
-    {
-      icon: TrendingUp,
-      title: "3-Jahres-Planung",
-      description: "Planen Sie Ihre Finanzen über drei Jahre mit monatlicher Detailansicht.",
-    },
-    {
-      icon: Building2,
-      title: "UG-Spezifisch",
-      description: "Speziell für deutsche UG entwickelt mit allen rechtlichen Anforderungen.",
-    },
-    {
-      icon: Shield,
-      title: "Sicher & Privat",
-      description: "Ihre Finanzdaten sind verschlüsselt und nur für Sie zugänglich.",
-    },
-    {
-      icon: Zap,
-      title: "Einfache Bedienung",
-      description: "Kein Excel-Wissen nötig. Beantworten Sie einfache Fragen.",
-    },
+    { icon: Calculator, titleKey: "landing.feature1Title", descKey: "landing.feature1Desc" },
+    { icon: FileText, titleKey: "landing.feature2Title", descKey: "landing.feature2Desc" },
+    { icon: TrendingUp, titleKey: "landing.feature3Title", descKey: "landing.feature3Desc" },
+    { icon: Building2, titleKey: "landing.feature4Title", descKey: "landing.feature4Desc" },
+    { icon: Shield, titleKey: "landing.feature5Title", descKey: "landing.feature5Desc" },
+    { icon: Zap, titleKey: "landing.feature6Title", descKey: "landing.feature6Desc" },
   ];
 
   const benefits = [
-    "Keine komplizierten Excel-Formeln mehr",
-    "Automatische Steuerberechnung nach deutschem Recht",
-    "Professionelle Dokumente für Ihre Bank",
-    "Zeit sparen bei der Finanzplanung",
-    "Immer aktuelle Berechnungen",
+    "landing.benefit1",
+    "landing.benefit2",
+    "landing.benefit3",
+    "landing.benefit4",
+    "landing.benefit5",
   ];
 
   return (
@@ -65,12 +47,13 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-xl">FounderFlow</span>
           </div>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-2">
+            <LanguageSwitcher />
             <Link href="/login">
-              <Button variant="ghost">Anmelden</Button>
+              <Button variant="ghost">{t("landing.signIn")}</Button>
             </Link>
             <Link href="/register">
-              <Button>Kostenlos starten</Button>
+              <Button>{t("landing.getStarted")}</Button>
             </Link>
           </nav>
         </div>
@@ -81,26 +64,25 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto space-y-6">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium">
             <Building2 className="h-4 w-4" />
-            Speziell für deutsche UG
+            {t("landing.badge")}
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-            Finanzplanung für Ihre UG{" "}
-            <span className="text-primary">ohne Excel</span>
+            {t("landing.heroTitle")}{" "}
+            <span className="text-primary">{t("landing.heroTitleHighlight")}</span>
           </h1>
           <p className="text-xl text-muted-foreground">
-            Erstellen Sie bankfähige BWA und Liquiditätspläne in Minuten. 
-            Beantworten Sie einfache Fragen - wir kümmern uns um die Berechnungen.
+            {t("landing.heroSubtitle")}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link href="/register">
               <Button size="lg" className="gap-2">
-                Jetzt kostenlos starten
+                {t("landing.ctaStart")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
             <Link href="/login">
               <Button size="lg" variant="outline">
-                Demo ansehen
+                {t("landing.ctaDemo")}
               </Button>
             </Link>
           </div>
@@ -110,9 +92,9 @@ export default function LandingPage() {
       {/* Features Section */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Alles was Sie brauchen</h2>
+          <h2 className="text-3xl font-bold mb-4">{t("landing.featuresTitle")}</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            FounderFlow vereinfacht die Finanzplanung für UG-Gründer mit automatisierten Berechnungen und professionellen Exports.
+            {t("landing.featuresSubtitle")}
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -122,8 +104,8 @@ export default function LandingPage() {
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                   <feature.icon className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>{feature.title}</CardTitle>
-                <CardDescription>{feature.description}</CardDescription>
+                <CardTitle>{t(feature.titleKey)}</CardTitle>
+                <CardDescription>{t(feature.descKey)}</CardDescription>
               </CardHeader>
             </Card>
           ))}
@@ -136,17 +118,16 @@ export default function LandingPage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold mb-6">
-                Verabschieden Sie sich von komplizierten Excel-Tabellen
+                {t("landing.benefitsTitle")}
               </h2>
               <p className="text-muted-foreground mb-8">
-                Unsere Interview-basierte Oberfläche führt Sie durch alle notwendigen Eingaben. 
-                Sie müssen keine Formeln kennen - wir berechnen alles automatisch nach deutschem Steuerrecht.
+                {t("landing.benefitsIntro")}
               </p>
               <ul className="space-y-4">
-                {benefits.map((benefit, index) => (
+                {benefits.map((key, index) => (
                   <li key={index} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
-                    <span>{benefit}</span>
+                    <span>{t(key)}</span>
                   </li>
                 ))}
               </ul>
@@ -158,8 +139,8 @@ export default function LandingPage() {
                     1
                   </div>
                   <div>
-                    <p className="font-medium">Firma einrichten</p>
-                    <p className="text-sm text-muted-foreground">Name, Stammkapital, Hebesatz</p>
+                    <p className="font-medium">{t("landing.howTo1Title")}</p>
+                    <p className="text-sm text-muted-foreground">{t("landing.howTo1Desc")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
@@ -167,8 +148,8 @@ export default function LandingPage() {
                     2
                   </div>
                   <div>
-                    <p className="font-medium">Umsatz & Kosten eingeben</p>
-                    <p className="text-sm text-muted-foreground">Personal, Miete, Marketing</p>
+                    <p className="font-medium">{t("landing.howTo2Title")}</p>
+                    <p className="text-sm text-muted-foreground">{t("landing.howTo2Desc")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
@@ -176,8 +157,8 @@ export default function LandingPage() {
                     3
                   </div>
                   <div>
-                    <p className="font-medium">PDF exportieren</p>
-                    <p className="text-sm text-muted-foreground">BWA & Liquiditätsplan</p>
+                    <p className="font-medium">{t("landing.howTo3Title")}</p>
+                    <p className="text-sm text-muted-foreground">{t("landing.howTo3Desc")}</p>
                   </div>
                 </div>
               </div>
@@ -190,15 +171,15 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 text-center">
         <Card className="max-w-2xl mx-auto p-8">
           <CardHeader>
-            <CardTitle className="text-2xl">Bereit für einfache Finanzplanung?</CardTitle>
+            <CardTitle className="text-2xl">{t("landing.ctaCardTitle")}</CardTitle>
             <CardDescription>
-              Starten Sie kostenlos und erstellen Sie Ihren ersten Finanzplan in wenigen Minuten.
+              {t("landing.ctaCardDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Link href="/register">
               <Button size="lg" className="gap-2">
-                Kostenlos registrieren
+                {t("landing.ctaRegister")}
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -209,7 +190,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} FounderFlow. Alle Rechte vorbehalten.</p>
+          <p>&copy; {new Date().getFullYear()} FounderFlow. {t("landing.footerRights")}</p>
         </div>
       </footer>
     </div>

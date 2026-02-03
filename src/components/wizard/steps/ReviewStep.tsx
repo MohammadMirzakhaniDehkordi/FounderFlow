@@ -30,9 +30,12 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "@/lib/i18n";
 
 export function ReviewStep() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
   const {
     company,
     plan,
@@ -78,7 +81,7 @@ export function ReviewStep() {
   const totalLoans = (loans.loans || []).reduce((sum, loan) => sum + loan.amount, 0);
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("de-DE", {
+    new Intl.NumberFormat(numberLocale, {
       style: "currency",
       currency: "EUR",
       minimumFractionDigits: 0,
@@ -86,11 +89,7 @@ export function ReviewStep() {
     }).format(value);
 
   const handleFinish = async () => {
-    // In a real app, this would save to Firestore
-    // For now, we'll simulate success and redirect to dashboard
-    toast.success("Finanzplan erstellt!");
-    
-    // Store the result for the dashboard (in a real app, this would be in Firestore)
+    toast.success(t("wizard.review.planCreated"));
     if (typeof window !== "undefined") {
       localStorage.setItem("founderflow-result", JSON.stringify({
         company,
@@ -98,15 +97,14 @@ export function ReviewStep() {
         liquidityResult,
       }));
     }
-    
     router.push("/dashboard");
   };
 
   return (
-    <WizardLayout onNext={handleFinish} nextLabel="Plan erstellen">
+    <WizardLayout onNext={handleFinish} nextLabel={t("wizard.createPlan")}>
       <div className="space-y-6">
         <p className="text-muted-foreground">
-          Überprüfen Sie Ihre Eingaben und die berechnete Finanzprognose.
+          {t("wizard.review.intro")}
         </p>
 
         {/* Warnings */}
@@ -117,10 +115,10 @@ export function ReviewStep() {
                 <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-amber-900 dark:text-amber-100">
-                    Liquiditätswarnung
+                    {t("wizard.review.liquidityWarning")}
                   </p>
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    In {warnings.length} Monat(en) ist die Liquidität negativ. Überprüfen Sie Ihre Planung oder erhöhen Sie die Finanzierung.
+                    {t("wizard.review.liquidityWarningDesc", { count: String(warnings.length) })}
                   </p>
                 </div>
               </div>
@@ -134,16 +132,16 @@ export function ReviewStep() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Firma</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("wizard.review.company")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="font-semibold">{company.companyName}</p>
               <p className="text-sm text-muted-foreground">
-                Stammkapital: {formatCurrency(company.stammkapital || 0)}
+                {t("wizard.review.stammkapital")} {formatCurrency(company.stammkapital || 0)}
               </p>
               <p className="text-sm text-muted-foreground">
-                Hebesatz: {company.hebesatz}%
+                {t("wizard.review.hebesatz")} {company.hebesatz}%
               </p>
             </CardContent>
           </Card>
@@ -152,7 +150,7 @@ export function ReviewStep() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Umsatz (Jahr 1)</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("wizard.review.revenueYear1")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
@@ -160,7 +158,7 @@ export function ReviewStep() {
                 {formatCurrency(liquidityResult.yearSummaries[plan.startYear]?.totalRevenue || 0)}
               </p>
               <p className="text-sm text-muted-foreground">
-                Modell: {revenue.revenueModel === "fixed" ? "Fest" : revenue.revenueModel === "growth" ? "Wachstum" : "Individuell"}
+                {t("wizard.review.model")} {revenue.revenueModel === "fixed" ? t("wizard.review.modelFixed") : revenue.revenueModel === "growth" ? t("wizard.review.modelGrowth") : t("wizard.review.modelCustom")}
               </p>
             </CardContent>
           </Card>
@@ -169,15 +167,15 @@ export function ReviewStep() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Personal</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("wizard.review.personnel")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="font-semibold text-lg">
-                {formatCurrency(totalPersonnelMonthly)}/Monat
+                {formatCurrency(totalPersonnelMonthly)}{t("common.perMonth")}
               </p>
               <p className="text-sm text-muted-foreground">
-                {(personnel.employees || []).length} Mitarbeiter
+                {(personnel.employees || []).length} {t("wizard.review.employees")}
               </p>
             </CardContent>
           </Card>
@@ -186,15 +184,15 @@ export function ReviewStep() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Receipt className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Betriebskosten</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("wizard.review.operatingCosts")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="font-semibold text-lg">
-                {formatCurrency(totalOperatingMonthly)}/Monat
+                {formatCurrency(totalOperatingMonthly)}{t("common.perMonth")}
               </p>
               <p className="text-sm text-muted-foreground">
-                {formatCurrency(totalOperatingMonthly * 12)}/Jahr
+                {formatCurrency(totalOperatingMonthly * 12)}{t("common.perYear")}
               </p>
             </CardContent>
           </Card>
@@ -203,13 +201,13 @@ export function ReviewStep() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Investitionen</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("wizard.review.investments")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="font-semibold text-lg">{formatCurrency(totalInvestments)}</p>
               <p className="text-sm text-muted-foreground">
-                {(investments.items || []).length} Position(en)
+                {(investments.items || []).length} {t("wizard.review.investmentsCount")}
               </p>
             </CardContent>
           </Card>
@@ -218,13 +216,13 @@ export function ReviewStep() {
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-muted-foreground" />
-                <CardTitle className="text-sm font-medium">Finanzierung</CardTitle>
+                <CardTitle className="text-sm font-medium">{t("wizard.review.financing")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <p className="font-semibold text-lg">{formatCurrency(totalLoans)}</p>
               <p className="text-sm text-muted-foreground">
-                {(loans.loans || []).length} Darlehen
+                {(loans.loans || []).length} {t("wizard.review.loansCount")}
               </p>
             </CardContent>
           </Card>
@@ -235,24 +233,24 @@ export function ReviewStep() {
         {/* 3-Year Projection Table */}
         <Card>
           <CardHeader>
-            <CardTitle>3-Jahres-Prognose</CardTitle>
+            <CardTitle>{t("wizard.review.threeYearProjection")}</CardTitle>
             <CardDescription>
-              Übersicht über Umsatz, Kosten und Gewinn
+              {t("wizard.review.projectionDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Kennzahl</TableHead>
-                  <TableHead className="text-right">Jahr {plan.startYear}</TableHead>
-                  <TableHead className="text-right">Jahr {plan.startYear + 1}</TableHead>
-                  <TableHead className="text-right">Jahr {plan.startYear + 2}</TableHead>
+                  <TableHead>{t("wizard.review.metric")}</TableHead>
+                  <TableHead className="text-right">{t("common.year")} {plan.startYear}</TableHead>
+                  <TableHead className="text-right">{t("common.year")} {plan.startYear + 1}</TableHead>
+                  <TableHead className="text-right">{t("common.year")} {plan.startYear + 2}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
-                  <TableCell className="font-medium">Umsatz</TableCell>
+                  <TableCell className="font-medium">{t("wizard.review.revenue")}</TableCell>
                   {[0, 1, 2].map((i) => (
                     <TableCell key={i} className="text-right">
                       {formatCurrency(
@@ -262,7 +260,7 @@ export function ReviewStep() {
                   ))}
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">Gesamtkosten</TableCell>
+                  <TableCell className="font-medium">{t("wizard.review.totalCosts")}</TableCell>
                   {[0, 1, 2].map((i) => (
                     <TableCell key={i} className="text-right">
                       {formatCurrency(
@@ -272,7 +270,7 @@ export function ReviewStep() {
                   ))}
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">Gewinn vor Steuern</TableCell>
+                  <TableCell className="font-medium">{t("wizard.review.profitBeforeTax")}</TableCell>
                   {[0, 1, 2].map((i) => {
                     const profit = liquidityResult.yearSummaries[plan.startYear + i]?.profitBeforeTax || 0;
                     return (
@@ -283,7 +281,7 @@ export function ReviewStep() {
                   })}
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">Steuern (geschätzt)</TableCell>
+                  <TableCell className="font-medium">{t("wizard.review.taxesEst")}</TableCell>
                   {[0, 1, 2].map((i) => (
                     <TableCell key={i} className="text-right">
                       {formatCurrency(
@@ -293,7 +291,7 @@ export function ReviewStep() {
                   ))}
                 </TableRow>
                 <TableRow className="font-semibold">
-                  <TableCell>Gewinn nach Steuern</TableCell>
+                  <TableCell>{t("wizard.review.profitAfterTax")}</TableCell>
                   {[0, 1, 2].map((i) => {
                     const netProfit = liquidityResult.yearSummaries[plan.startYear + i]?.netProfit || 0;
                     return (
@@ -304,7 +302,7 @@ export function ReviewStep() {
                   })}
                 </TableRow>
                 <TableRow>
-                  <TableCell className="font-medium">UG-Rücklage (25%)</TableCell>
+                  <TableCell className="font-medium">{t("wizard.review.ugReserve")}</TableCell>
                   {[0, 1, 2].map((i) => (
                     <TableCell key={i} className="text-right">
                       {formatCurrency(
@@ -314,7 +312,7 @@ export function ReviewStep() {
                   ))}
                 </TableRow>
                 <TableRow className="bg-muted/50">
-                  <TableCell className="font-semibold">Endliquidität</TableCell>
+                  <TableCell className="font-semibold">{t("wizard.review.endLiquidity")}</TableCell>
                   {[0, 1, 2].map((i) => {
                     const endLiq = liquidityResult.yearSummaries[plan.startYear + i]?.endLiquidity || 0;
                     return (
@@ -337,11 +335,10 @@ export function ReviewStep() {
                 <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-green-900 dark:text-green-100">
-                    Finanzplan ist plausibel
+                    {t("wizard.review.plausibleTitle")}
                   </p>
                   <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                    Ihre Liquidität bleibt über den gesamten Planungszeitraum positiv. 
-                    Klicken Sie auf "Plan erstellen" um fortzufahren.
+                    {t("wizard.review.plausibleDesc")}
                   </p>
                 </div>
               </div>

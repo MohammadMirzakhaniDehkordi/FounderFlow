@@ -12,21 +12,19 @@ import {
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { MonthlyCalculation } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n";
 
 interface LiquidityChartProps {
   data: Record<string, MonthlyCalculation>;
 }
 
-const MONTHS_DE_SHORT = [
-  "Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
-  "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"
-];
-
 export function LiquidityChart({ data }: LiquidityChartProps) {
+  const { t } = useTranslation();
+
   const chartData = Object.entries(data).map(([month, calc]) => {
-    const [year, monthNum] = month.split("-");
+    const [, monthNum] = month.split("-");
     return {
-      month: `${MONTHS_DE_SHORT[parseInt(monthNum) - 1]} ${year.slice(2)}`,
+      month: `${t(`monthsShort.${monthNum}`)} ${month.split("-")[0].slice(2)}`,
       endBalance: calc.endBalance,
       revenue: calc.revenue,
       outflows: calc.totalOutflows,
@@ -46,8 +44,8 @@ export function LiquidityChart({ data }: LiquidityChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Liquiditätsentwicklung</CardTitle>
-        <CardDescription>Kontostand über den Planungszeitraum</CardDescription>
+        <CardTitle>{t("charts.liquidityTitle")}</CardTitle>
+        <CardDescription>{t("charts.liquidityDesc")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] min-h-[300px]">

@@ -2,12 +2,12 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet, 
-  PiggyBank, 
-  Percent, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  PiggyBank,
+  Percent,
   Building2,
   Target,
   Clock,
@@ -15,6 +15,7 @@ import {
   CheckCircle
 } from "lucide-react";
 import type { YearSummary, MonthlyCalculation } from "@/lib/types";
+import { useTranslation } from "@/lib/i18n";
 
 interface KPICardsProps {
   yearSummaries: Record<number, YearSummary>;
@@ -23,12 +24,14 @@ interface KPICardsProps {
 }
 
 export function KPICards({ yearSummaries, startYear, monthlyData }: KPICardsProps) {
+  const { t, locale } = useTranslation();
   const year1 = yearSummaries[startYear];
   const year2 = yearSummaries[startYear + 1];
   const year3 = yearSummaries[startYear + 2];
+  const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
 
   const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("de-DE", {
+    new Intl.NumberFormat(numberLocale, {
       style: "currency",
       currency: "EUR",
       minimumFractionDigits: 0,
@@ -66,7 +69,7 @@ export function KPICards({ yearSummaries, startYear, monthlyData }: KPICardsProp
         break;
       }
     }
-    if (!negativeMonth) return "> 36 Monate";
+    if (!negativeMonth) return ">36";
     return negativeMonth;
   };
 
@@ -90,70 +93,72 @@ export function KPICards({ yearSummaries, startYear, monthlyData }: KPICardsProp
   const totalUGReserve = (year1?.ugReserve || 0) + (year2?.ugReserve || 0) + (year3?.ugReserve || 0);
   const stammkapitalProgress = Math.min((totalUGReserve / 25000) * 100, 100);
 
+  const runwayIsLong = runway === ">36";
+  const runwayDisplay = runwayIsLong ? t("dashboard.monthsShort") : runway;
   const kpis = [
     {
-      title: "Umsatz Jahr 1",
+      title: t("dashboard.revenueYear1"),
       value: formatCurrency(year1?.totalRevenue || 0),
       icon: TrendingUp,
-      description: `${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}% bis Jahr 3`,
+      description: `${revenueGrowth >= 0 ? "+" : ""}${revenueGrowth}% ${t("common.year")} 3`,
       trend: revenueGrowth >= 0 ? "up" : "down",
       color: "text-blue-500",
     },
     {
-      title: "Gewinn Jahr 3",
+      title: t("dashboard.profitYear3"),
       value: formatCurrency(year3?.netProfit || 0),
       icon: (year3?.netProfit || 0) >= 0 ? PiggyBank : TrendingDown,
-      description: `Nach Steuern`,
+      description: t("dashboard.afterTaxes"),
       trend: (year3?.netProfit || 0) >= 0 ? "up" : "down",
       color: (year3?.netProfit || 0) >= 0 ? "text-green-500" : "text-red-500",
     },
     {
-      title: "Endliquidität",
+      title: t("dashboard.endLiquidity"),
       value: formatCurrency(year3?.endLiquidity || 0),
       icon: Wallet,
-      description: "Ende Jahr 3",
+      description: t("dashboard.endYear3"),
       trend: (year3?.endLiquidity || 0) >= 0 ? "up" : "down",
       color: (year3?.endLiquidity || 0) >= 0 ? "text-green-500" : "text-red-500",
     },
     {
-      title: "Break-Even",
-      value: breakEvenMonth || "Nicht erreicht",
+      title: t("dashboard.breakEven"),
+      value: breakEvenMonth || t("dashboard.notReached"),
       icon: breakEvenMonth ? Target : AlertTriangle,
-      description: breakEvenMonth ? "Profitabel ab" : "In 3 Jahren",
+      description: breakEvenMonth ? t("dashboard.profitableFrom") : t("dashboard.in3Years"),
       trend: breakEvenMonth ? "up" : "down",
       color: breakEvenMonth ? "text-green-500" : "text-amber-500",
     },
     {
-      title: "Gewinnmarge",
+      title: t("dashboard.profitMargin"),
       value: `${profitMarginYear3}%`,
       icon: Percent,
-      description: "Jahr 3",
+      description: `${t("common.year")} 3`,
       trend: profitMarginYear3 >= 10 ? "up" : profitMarginYear3 >= 0 ? "neutral" : "down",
       color: profitMarginYear3 >= 10 ? "text-green-500" : profitMarginYear3 >= 0 ? "text-amber-500" : "text-red-500",
     },
     {
-      title: "Runway",
-      value: runway || "> 36 Mon.",
-      icon: runway === "> 36 Monate" ? CheckCircle : Clock,
-      description: "Liquidität reicht bis",
-      trend: runway === "> 36 Monate" ? "up" : "neutral",
-      color: runway === "> 36 Monate" ? "text-green-500" : "text-amber-500",
+      title: t("dashboard.runway"),
+      value: runwayDisplay,
+      icon: runwayIsLong ? CheckCircle : Clock,
+      description: t("dashboard.liquidityUntil"),
+      trend: runwayIsLong ? "up" : "neutral",
+      color: runwayIsLong ? "text-green-500" : "text-amber-500",
     },
     {
-      title: "Burn Rate",
+      title: t("dashboard.burnRate"),
       value: burnRate > 0 ? formatCurrency(burnRate) : "0 €",
       icon: TrendingDown,
-      description: "Ø monatlich (Jahr 1)",
+      description: t("dashboard.avgMonthlyYear1"),
       trend: burnRate === 0 ? "up" : "down",
       color: burnRate > 0 ? "text-red-500" : "text-green-500",
     },
     {
-      title: "Steuern gesamt",
+      title: t("dashboard.totalTaxes"),
       value: formatCurrency(
         (year1?.totalTaxes || 0) + (year2?.totalTaxes || 0) + (year3?.totalTaxes || 0)
       ),
       icon: Building2,
-      description: "3 Jahre",
+      description: t("dashboard.threeYears"),
       trend: "neutral",
       color: "text-muted-foreground",
     },
@@ -203,10 +208,10 @@ export function KPICards({ yearSummaries, startYear, monthlyData }: KPICardsProp
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <PiggyBank className="h-5 w-5 text-primary" />
-              <span className="font-semibold">UG-Rücklage (Stammkapitalaufbau)</span>
+              <span className="font-semibold">{t("dashboard.ugReserve")}</span>
             </div>
             <Badge variant={stammkapitalProgress >= 100 ? "default" : "secondary"}>
-              {stammkapitalProgress >= 100 ? "Ziel erreicht!" : `${Math.round(stammkapitalProgress)}%`}
+              {stammkapitalProgress >= 100 ? t("dashboard.goalReached") : `${Math.round(stammkapitalProgress)}%`}
             </Badge>
           </div>
           <div className="w-full bg-muted rounded-full h-3 mb-2">
@@ -216,8 +221,8 @@ export function KPICards({ yearSummaries, startYear, monthlyData }: KPICardsProp
             />
           </div>
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{formatCurrency(totalUGReserve)} angespart</span>
-            <span>Ziel: 25.000 € (GmbH-Umwandlung)</span>
+            <span>{formatCurrency(totalUGReserve)} {t("dashboard.saved")}</span>
+            <span>{t("dashboard.goal")}</span>
           </div>
         </CardContent>
       </Card>
