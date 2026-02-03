@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 
-import { signUp, signInWithGoogle, handleGoogleRedirectResult, onAuthChange } from "@/lib/firebase/auth";
+import { signUp, signInWithGoogle, onAuthChange } from "@/lib/firebase/auth";
 import { registerSchema, RegisterFormData } from "@/lib/schemas/auth";
 
 export default function RegisterPage() {
@@ -32,23 +32,11 @@ export default function RegisterPage() {
       console.log("[RegisterPage] Auth state changed:", user ? user.email : "No user");
       if (user) {
         toast.success("Erfolgreich registriert!");
-        router.push("/dashboard");
+        router.push("/dashboard/");
       }
       setIsCheckingAuth(false);
     });
     return () => unsubscribe();
-  }, [router]);
-
-  // Handle Google redirect result on page load
-  useEffect(() => {
-    console.log("[RegisterPage] Checking for Google redirect result");
-    handleGoogleRedirectResult().then((user) => {
-      console.log("[RegisterPage] Redirect result:", user ? user.email : "No user from redirect");
-      if (user) {
-        toast.success("Erfolgreich registriert!");
-        router.push("/dashboard");
-      }
-    });
   }, [router]);
 
   const form = useForm<RegisterFormData>({
@@ -83,13 +71,17 @@ export default function RegisterPage() {
     console.log("[RegisterPage] Google Sign-In button clicked");
     setIsGoogleLoading(true);
     try {
-      // This will redirect to Google
-      await signInWithGoogle();
-      // User will be redirected, so no need for further action here
+      const user = await signInWithGoogle();
+      if (user) {
+        console.log("[RegisterPage] Google Sign-In successful:", user.email);
+        toast.success("Erfolgreich registriert!");
+        router.push("/dashboard/");
+      }
     } catch (error: unknown) {
       const firebaseError = error as { code?: string; message?: string };
       console.error("[RegisterPage] Google Sign-In error:", firebaseError.code, firebaseError.message);
       toast.error(`Google-Anmeldung fehlgeschlagen: ${firebaseError.code || "Unknown error"}`);
+    } finally {
       setIsGoogleLoading(false);
     }
   }
@@ -107,10 +99,7 @@ export default function RegisterPage() {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => {
-            console.log("[RegisterPage] Button onClick triggered");
-            handleGoogleSignIn();
-          }}
+          onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
         >
           {isGoogleLoading ? (
@@ -135,7 +124,7 @@ export default function RegisterPage() {
               />
             </svg>
           )}
-          {isGoogleLoading ? "Weiterleitung..." : "Mit Google registrieren"}
+          {isGoogleLoading ? "Wird geladen..." : "Mit Google registrieren"}
         </Button>
 
         <div className="relative">

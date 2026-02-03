@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -16,23 +16,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 
-import { signIn, signInWithGoogle, handleGoogleRedirectResult } from "@/lib/firebase/auth";
+import { signIn, signInWithGoogle } from "@/lib/firebase/auth";
 import { loginSchema, LoginFormData } from "@/lib/schemas/auth";
 
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
-  // Handle Google redirect result on page load
-  useEffect(() => {
-    handleGoogleRedirectResult().then((user) => {
-      if (user) {
-        toast.success("Erfolgreich angemeldet!");
-        router.push("/dashboard");
-      }
-    });
-  }, [router]);
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -64,13 +54,17 @@ export default function LoginPage() {
     console.log("[LoginPage] Google Sign-In button clicked");
     setIsGoogleLoading(true);
     try {
-      // This will redirect to Google
-      await signInWithGoogle();
-      // User will be redirected, so no need for further action here
+      const user = await signInWithGoogle();
+      if (user) {
+        console.log("[LoginPage] Google Sign-In successful:", user.email);
+        toast.success("Erfolgreich angemeldet!");
+        router.push("/dashboard/");
+      }
     } catch (error: unknown) {
       const firebaseError = error as { code?: string; message?: string };
       console.error("[LoginPage] Google Sign-In error:", firebaseError.code, firebaseError.message);
       toast.error(`Google-Anmeldung fehlgeschlagen: ${firebaseError.code || "Unknown error"}`);
+    } finally {
       setIsGoogleLoading(false);
     }
   }
@@ -88,10 +82,7 @@ export default function LoginPage() {
           type="button"
           variant="outline"
           className="w-full"
-          onClick={() => {
-            console.log("[LoginPage] Button onClick triggered");
-            handleGoogleSignIn();
-          }}
+          onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
         >
           {isGoogleLoading ? (

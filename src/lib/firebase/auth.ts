@@ -1,8 +1,7 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -38,37 +37,27 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signInWithGoogle() {
-  console.log("[Auth] Starting Google Sign-In with redirect...");
-  // Use redirect instead of popup to avoid COOP issues
-  await signInWithRedirect(auth, googleProvider);
-}
-
-// Call this on app load to handle redirect result
-export async function handleGoogleRedirectResult() {
-  console.log("[Auth] Checking for Google redirect result...");
+  console.log("[Auth] Starting Google Sign-In with popup...");
   try {
-    const result = await getRedirectResult(auth);
-    console.log("[Auth] Redirect result:", result ? "User found" : "No redirect result");
-    if (result) {
-      const user = result.user;
-      console.log("[Auth] User authenticated:", user.email);
-      // Check if user document exists, if not create it
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (!userDoc.exists()) {
-        console.log("[Auth] Creating new user document in Firestore");
-        await setDoc(doc(db, "users", user.uid), {
-          email: user.email,
-          displayName: user.displayName,
-          createdAt: serverTimestamp(),
-        });
-      }
-      return user;
+    const result = await signInWithPopup(auth, googleProvider);
+    const user = result.user;
+    console.log("[Auth] User authenticated:", user.email);
+    
+    // Check if user document exists, if not create it
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (!userDoc.exists()) {
+      console.log("[Auth] Creating new user document in Firestore");
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        displayName: user.displayName,
+        createdAt: serverTimestamp(),
+      });
     }
-    return null;
+    return user;
   } catch (error: unknown) {
     const firebaseError = error as { code?: string; message?: string };
-    console.error("[Auth] Google redirect error:", firebaseError.code, firebaseError.message);
-    return null;
+    console.error("[Auth] Google Sign-In error:", firebaseError.code, firebaseError.message);
+    throw error;
   }
 }
 
