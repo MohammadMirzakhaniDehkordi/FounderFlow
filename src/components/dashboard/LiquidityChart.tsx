@@ -50,8 +50,8 @@ export function LiquidityChart({ data }: LiquidityChartProps) {
         <CardDescription>Kontostand über den Planungszeitraum</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={200}>
             <AreaChart
               data={chartData}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
