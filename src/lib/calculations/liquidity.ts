@@ -14,6 +14,7 @@ import type {
   RevenueData,
   PersonnelData,
   OperatingCostsData,
+  OperatingCostCategories,
   InvestmentsData,
   LoansData,
   MonthlyCalculation,
@@ -21,6 +22,7 @@ import type {
 } from "../types";
 import { calculateTaxes, calculateUGReserve } from "./taxes";
 import { calculateMonthlyLoanCosts, getTotalRemainingLoanBalance } from "./loans";
+import { calculateMonthlyVAT } from "./vat";
 
 export interface LiquidityInput {
   startYear: number;
@@ -87,35 +89,44 @@ function getMonthlyPersonnelCosts(personnel: PersonnelData, month: string): numb
 }
 
 /**
- * Get operating costs for a specific month
+ * Get operating costs for a specific month with breakdown
  */
-function getMonthlyOperatingCosts(costs: OperatingCostsData, month: string): number {
-  const baseCategories = costs.categories || {
-    rent: 0,
-    marketing: 0,
-    insurance: 0,
-    software: 0,
-    legal: 0,
+function getMonthlyOperatingCosts(costs: OperatingCostsData, month: string): {
+  total: number;
+  breakdown: Partial<OperatingCostCategories>;
+} {
+  const defaultCategories: OperatingCostCategories = {
+    rent: 200,
+    telephoneInternet: 10,
+    travelCosts: 150,
+    insurance: 20,
+    marketing: 350,
+    softwareLicenses: 25,
     accounting: 0,
+    officeSupplies: 0,
+    chamberFees: 0,
     other: 0,
   };
 
-  // Calculate base total
-  let total = Object.values(baseCategories).reduce((sum, val) => sum + (val || 0), 0);
+  const baseCategories = costs.categories || defaultCategories;
+
+  // Create breakdown with applied overrides
+  const breakdown: Partial<OperatingCostCategories> = { ...baseCategories };
 
   // Apply monthly overrides if any
   if (costs.monthlyOverrides && costs.monthlyOverrides[month]) {
     const overrides = costs.monthlyOverrides[month];
     for (const [key, value] of Object.entries(overrides)) {
       if (value !== undefined) {
-        // Replace base value with override
-        const baseKey = key as keyof typeof baseCategories;
-        total = total - (baseCategories[baseKey] || 0) + value;
+        (breakdown as Record<string, number>)[key] = value;
       }
     }
   }
 
-  return total;
+  // Calculate total
+  const total = Object.values(breakdown).reduce((sum, val) => sum + (val || 0), 0);
+
+  return { total, breakdown };
 }
 
 /**
@@ -179,8 +190,18 @@ export function calculateLiquidity(input: LiquidityInput): LiquidityResult {
 
     // Calculate outflows
     const personnelCosts = getMonthlyPersonnelCosts(personnel, month);
-    const operatingCostsAmount = getMonthlyOperatingCosts(operatingCosts, month);
+    const operatingCostsResult = getMonthlyOperatingCosts(operatingCosts, month);
+    const operatingCostsAmount = operatingCostsResult.total;
+    const operatingCostsBreakdown = operatingCostsResult.breakdown;
     const investmentCosts = getMonthlyInvestmentCosts(investments, month);
+
+    // Calculate VAT (Umsatzsteuer)
+    // Assume not small business for simplicity - can be made configurable
+    const vatResult = calculateMonthlyVAT(
+      revenueAmount,
+      operatingCostsAmount + investmentCosts,
+      false // isSmallBusiness
+    );
 
     // Loan costs
     const loanCosts = loans.loans
@@ -225,10 +246,12 @@ export function calculateLiquidity(input: LiquidityInput): LiquidityResult {
     months[month] = {
       month,
       revenue: Math.round(revenueAmount * 100) / 100,
+      revenueGross: Math.round(vatResult.grossRevenue * 100) / 100,
       otherIncome: Math.round(otherIncome * 100) / 100,
       totalInflows: Math.round(totalInflows * 100) / 100,
       personnelCosts: Math.round(personnelCosts * 100) / 100,
       operatingCosts: Math.round(operatingCostsAmount * 100) / 100,
+      operatingCostsBreakdown,
       investmentCosts: Math.round(investmentCosts * 100) / 100,
       loanInterest: Math.round(loanCosts.totalInterest * 100) / 100,
       loanPrincipal: Math.round(loanCosts.totalPrincipal * 100) / 100,
@@ -239,6 +262,9 @@ export function calculateLiquidity(input: LiquidityInput): LiquidityResult {
       koerperschaftsteuer: Math.round(monthlyTaxEstimate.koerperschaftsteuer * 100) / 100,
       gewerbesteuer: Math.round(monthlyTaxEstimate.gewerbesteuer * 100) / 100,
       solidaritaetszuschlag: Math.round(monthlyTaxEstimate.solidaritaetszuschlag * 100) / 100,
+      vatCollected: Math.round(vatResult.vatCollected * 100) / 100,
+      vatPaid: Math.round(vatResult.vatPaid * 100) / 100,
+      vatPayable: Math.round(vatResult.vatPayable * 100) / 100,
       loanRemainingBalance: Math.round(loanRemainingBalance * 100) / 100,
     };
   }

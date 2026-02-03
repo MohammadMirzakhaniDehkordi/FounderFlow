@@ -166,6 +166,7 @@ export default function DashboardPage() {
             <KPICards
               yearSummaries={result.liquidityResult.yearSummaries}
               startYear={result.plan.startYear}
+              monthlyData={result.liquidityResult.months}
             />
 
             {/* Charts */}

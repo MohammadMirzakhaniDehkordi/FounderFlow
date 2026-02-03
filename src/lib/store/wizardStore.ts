@@ -79,12 +79,15 @@ const initialState = {
   },
   operatingCosts: {
     categories: {
-      rent: 0,
-      marketing: 0,
-      insurance: 0,
-      software: 0,
-      legal: 0,
+      rent: 200,
+      telephoneInternet: 10,
+      travelCosts: 150,
+      insurance: 20,
+      marketing: 350,
+      softwareLicenses: 25,
       accounting: 0,
+      officeSupplies: 0,
+      chamberFees: 0,
       other: 0,
     },
     monthlyOverrides: {},
@@ -158,12 +161,15 @@ export const useWizardStore = create<WizardState>()(
       updateOperatingCosts: (data) =>
         set((state) => {
           const newCategories = {
-            rent: data.categories?.rent ?? state.operatingCosts.categories?.rent ?? 0,
-            marketing: data.categories?.marketing ?? state.operatingCosts.categories?.marketing ?? 0,
-            insurance: data.categories?.insurance ?? state.operatingCosts.categories?.insurance ?? 0,
-            software: data.categories?.software ?? state.operatingCosts.categories?.software ?? 0,
-            legal: data.categories?.legal ?? state.operatingCosts.categories?.legal ?? 0,
+            rent: data.categories?.rent ?? state.operatingCosts.categories?.rent ?? 200,
+            telephoneInternet: data.categories?.telephoneInternet ?? state.operatingCosts.categories?.telephoneInternet ?? 10,
+            travelCosts: data.categories?.travelCosts ?? state.operatingCosts.categories?.travelCosts ?? 150,
+            insurance: data.categories?.insurance ?? state.operatingCosts.categories?.insurance ?? 20,
+            marketing: data.categories?.marketing ?? state.operatingCosts.categories?.marketing ?? 350,
+            softwareLicenses: data.categories?.softwareLicenses ?? state.operatingCosts.categories?.softwareLicenses ?? 25,
             accounting: data.categories?.accounting ?? state.operatingCosts.categories?.accounting ?? 0,
+            officeSupplies: data.categories?.officeSupplies ?? state.operatingCosts.categories?.officeSupplies ?? 0,
+            chamberFees: data.categories?.chamberFees ?? state.operatingCosts.categories?.chamberFees ?? 0,
             other: data.categories?.other ?? state.operatingCosts.categories?.other ?? 0,
           };
           return {

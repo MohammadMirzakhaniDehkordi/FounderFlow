@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,53 +19,85 @@ import {
   Megaphone, 
   Shield, 
   Laptop, 
-  Scale, 
+  Phone,
+  Car,
   Calculator,
+  FileText,
+  Building2,
   MoreHorizontal 
 } from "lucide-react";
 
+// Categories matching German Betriebskosten from Excel template
 const COST_CATEGORIES = [
   {
     key: "rent",
     label: "Miete",
     description: "Büro, Coworking, Lager",
     icon: Home,
+    defaultValue: 200,
   },
   {
-    key: "marketing",
-    label: "Marketing",
-    description: "Werbung, Social Media, SEO",
-    icon: Megaphone,
+    key: "telephoneInternet",
+    label: "Telefon & Internet",
+    description: "Festnetz, Mobil, DSL",
+    icon: Phone,
+    defaultValue: 10,
+  },
+  {
+    key: "travelCosts",
+    label: "Fahrt-/Reisekosten",
+    description: "PKW, Benzin, Versicherung, Leasing",
+    icon: Car,
+    defaultValue: 150,
   },
   {
     key: "insurance",
     label: "Versicherungen",
-    description: "Haftpflicht, Cyber, etc.",
+    description: "Betriebshaftpflicht, etc.",
     icon: Shield,
+    defaultValue: 20,
   },
   {
-    key: "software",
-    label: "Software & Tools",
-    description: "SaaS, Lizenzen, Hosting",
+    key: "marketing",
+    label: "Marketing",
+    description: "Web, LinkedIn, Facebook, Werbung",
+    icon: Megaphone,
+    defaultValue: 350,
+  },
+  {
+    key: "softwareLicenses",
+    label: "Software Lizenzen",
+    description: "Zoom, Microsoft, SaaS",
     icon: Laptop,
-  },
-  {
-    key: "legal",
-    label: "Rechtsberatung",
-    description: "Anwälte, Verträge",
-    icon: Scale,
+    defaultValue: 25,
   },
   {
     key: "accounting",
-    label: "Buchhaltung",
-    description: "Steuerberater, DATEV",
+    label: "Steuerberater",
+    description: "Buchhaltung, DATEV",
     icon: Calculator,
+    defaultValue: 0,
+  },
+  {
+    key: "officeSupplies",
+    label: "Büromaterial",
+    description: "Papier, Drucker, etc.",
+    icon: FileText,
+    defaultValue: 0,
+  },
+  {
+    key: "chamberFees",
+    label: "IHK Beiträge",
+    description: "Industrie- und Handelskammer",
+    icon: Building2,
+    defaultValue: 0,
   },
   {
     key: "other",
     label: "Sonstiges",
     description: "Weitere laufende Kosten",
     icon: MoreHorizontal,
+    defaultValue: 0,
   },
 ] as const;
 
@@ -74,13 +106,16 @@ export function OperatingCostsStep() {
 
   const form = useForm({
     defaultValues: {
-      rent: operatingCosts.categories?.rent || 0,
-      marketing: operatingCosts.categories?.marketing || 0,
-      insurance: operatingCosts.categories?.insurance || 0,
-      software: operatingCosts.categories?.software || 0,
-      legal: operatingCosts.categories?.legal || 0,
-      accounting: operatingCosts.categories?.accounting || 0,
-      other: operatingCosts.categories?.other || 0,
+      rent: operatingCosts.categories?.rent ?? 200,
+      telephoneInternet: operatingCosts.categories?.telephoneInternet ?? 10,
+      travelCosts: operatingCosts.categories?.travelCosts ?? 150,
+      insurance: operatingCosts.categories?.insurance ?? 20,
+      marketing: operatingCosts.categories?.marketing ?? 350,
+      softwareLicenses: operatingCosts.categories?.softwareLicenses ?? 25,
+      accounting: operatingCosts.categories?.accounting ?? 0,
+      officeSupplies: operatingCosts.categories?.officeSupplies ?? 0,
+      chamberFees: operatingCosts.categories?.chamberFees ?? 0,
+      other: operatingCosts.categories?.other ?? 0,
     },
   });
 
@@ -91,11 +126,14 @@ export function OperatingCostsStep() {
     updateOperatingCosts({
       categories: {
         rent: values.rent,
-        marketing: values.marketing,
+        telephoneInternet: values.telephoneInternet,
+        travelCosts: values.travelCosts,
         insurance: values.insurance,
-        software: values.software,
-        legal: values.legal,
+        marketing: values.marketing,
+        softwareLicenses: values.softwareLicenses,
         accounting: values.accounting,
+        officeSupplies: values.officeSupplies,
+        chamberFees: values.chamberFees,
         other: values.other,
       },
     });

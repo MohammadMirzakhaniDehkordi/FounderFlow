@@ -63,15 +63,35 @@ export interface PersonnelData {
   employees: Employee[];
 }
 
-// Operating Costs Types
+// Operating Costs Types (matching German Betriebskosten structure)
 export interface OperatingCostCategories {
+  // Miete (Rent)
   rent: number;
-  marketing: number;
+  // Telefon, Internet
+  telephoneInternet: number;
+  // Fahrtkosten/Reisekosten
+  travelCosts: number;
+  // Versicherungen (Betriebshaftpflicht, etc.)
   insurance: number;
-  software: number;
-  legal: number;
+  // Marketing (Web, LinkedIn, Facebook, Instagram, usw.)
+  marketing: number;
+  // Software Lizenzen (Zoom, Microsoft, etc.)
+  softwareLicenses: number;
+  // Steuerberater
   accounting: number;
+  // Büromaterial
+  officeSupplies: number;
+  // IHK Beiträge
+  chamberFees: number;
+  // Sonstiges
   other: number;
+}
+
+// VAT (Umsatzsteuer) Configuration
+export interface VATConfig {
+  isSmallBusiness: boolean; // Kleinunternehmerregelung (§19 UStG)
+  vatRate: number; // Standard 19%, reduced 7%
+  vatPaymentPeriod: "monthly" | "quarterly"; // Voranmeldungszeitraum
 }
 
 export interface OperatingCostsData {
@@ -117,11 +137,13 @@ export interface MonthlyCalculation {
   month: string;
   // Inflows
   revenue: number;
+  revenueGross: number; // Including VAT
   otherIncome: number;
   totalInflows: number;
   // Outflows
   personnelCosts: number;
   operatingCosts: number;
+  operatingCostsBreakdown: Partial<OperatingCostCategories>; // Detailed breakdown
   investmentCosts: number;
   loanInterest: number;
   loanPrincipal: number;
@@ -134,6 +156,10 @@ export interface MonthlyCalculation {
   koerperschaftsteuer: number;
   gewerbesteuer: number;
   solidaritaetszuschlag: number;
+  // VAT (Umsatzsteuer)
+  vatCollected: number; // Eingenommene Umsatzsteuer
+  vatPaid: number; // Gezahlte Vorsteuer
+  vatPayable: number; // Umsatzsteuerzahllast
   // Loan tracking
   loanRemainingBalance: number;
 }
