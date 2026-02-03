@@ -61,13 +61,16 @@ export default function LoginPage() {
   }
 
   async function handleGoogleSignIn() {
+    console.log("[LoginPage] Google Sign-In button clicked");
     setIsGoogleLoading(true);
     try {
       // This will redirect to Google
       await signInWithGoogle();
       // User will be redirected, so no need for further action here
-    } catch (error) {
-      toast.error("Google-Anmeldung fehlgeschlagen");
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string; message?: string };
+      console.error("[LoginPage] Google Sign-In error:", firebaseError.code, firebaseError.message);
+      toast.error(`Google-Anmeldung fehlgeschlagen: ${firebaseError.code || "Unknown error"}`);
       setIsGoogleLoading(false);
     }
   }
@@ -82,9 +85,13 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Button
+          type="button"
           variant="outline"
           className="w-full"
-          onClick={handleGoogleSignIn}
+          onClick={() => {
+            console.log("[LoginPage] Button onClick triggered");
+            handleGoogleSignIn();
+          }}
           disabled={isGoogleLoading}
         >
           {isGoogleLoading ? (

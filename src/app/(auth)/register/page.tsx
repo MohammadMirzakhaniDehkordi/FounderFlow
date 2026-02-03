@@ -80,13 +80,16 @@ export default function RegisterPage() {
   }
 
   async function handleGoogleSignIn() {
+    console.log("[RegisterPage] Google Sign-In button clicked");
     setIsGoogleLoading(true);
     try {
       // This will redirect to Google
       await signInWithGoogle();
       // User will be redirected, so no need for further action here
-    } catch (error) {
-      toast.error("Google-Anmeldung fehlgeschlagen");
+    } catch (error: unknown) {
+      const firebaseError = error as { code?: string; message?: string };
+      console.error("[RegisterPage] Google Sign-In error:", firebaseError.code, firebaseError.message);
+      toast.error(`Google-Anmeldung fehlgeschlagen: ${firebaseError.code || "Unknown error"}`);
       setIsGoogleLoading(false);
     }
   }
@@ -101,9 +104,13 @@ export default function RegisterPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         <Button
+          type="button"
           variant="outline"
           className="w-full"
-          onClick={handleGoogleSignIn}
+          onClick={() => {
+            console.log("[RegisterPage] Button onClick triggered");
+            handleGoogleSignIn();
+          }}
           disabled={isGoogleLoading}
         >
           {isGoogleLoading ? (
