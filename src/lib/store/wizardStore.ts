@@ -10,6 +10,7 @@ import type {
   Employee,
   Investment,
   Loan,
+  OperatingCostItem,
 } from "../types";
 
 export interface WizardState {
@@ -44,6 +45,10 @@ export interface WizardState {
   updateEmployee: (id: string, data: Partial<Employee>) => void;
   removeEmployee: (id: string) => void;
   updateOperatingCosts: (data: Partial<OperatingCostsData>) => void;
+  // New: Dynamic expense item actions
+  addExpenseItem: (item: OperatingCostItem) => void;
+  updateExpenseItem: (id: string, data: Partial<OperatingCostItem>) => void;
+  removeExpenseItem: (id: string) => void;
   updateInvestments: (data: Partial<InvestmentsData>) => void;
   addInvestment: (investment: Investment) => void;
   removeInvestment: (id: string) => void;
@@ -52,7 +57,20 @@ export interface WizardState {
   updateLoan: (id: string, data: Partial<Loan>) => void;
   removeLoan: (id: string) => void;
   reset: () => void;
+  // Load all data (for Firestore integration)
+  loadAllData: (data: Partial<WizardState>) => void;
 }
+
+// Default expense items for new plans
+const defaultExpenseItems: OperatingCostItem[] = [
+  { id: "rent", name: "Miete", amount: 200, description: "Büro, Coworking, Lager" },
+  { id: "telephoneInternet", name: "Telefon & Internet", amount: 50, description: "Festnetz, Mobil, DSL" },
+  { id: "travelCosts", name: "Fahrt-/Reisekosten", amount: 150, description: "PKW, Benzin, Leasing" },
+  { id: "insurance", name: "Versicherungen", amount: 50, description: "Betriebshaftpflicht, etc." },
+  { id: "marketing", name: "Marketing", amount: 200, description: "Web, Social Media, Werbung" },
+  { id: "softwareLicenses", name: "Software Lizenzen", amount: 100, description: "Zoom, Microsoft, SaaS" },
+  { id: "accounting", name: "Steuerberater", amount: 150, description: "Buchhaltung, DATEV" },
+];
 
 const initialState = {
   currentStep: 0,
@@ -78,19 +96,7 @@ const initialState = {
     employees: [],
   },
   operatingCosts: {
-    categories: {
-      rent: 200,
-      telephoneInternet: 10,
-      travelCosts: 150,
-      insurance: 20,
-      marketing: 350,
-      softwareLicenses: 25,
-      accounting: 0,
-      officeSupplies: 0,
-      chamberFees: 0,
-      other: 0,
-    },
-    monthlyOverrides: {},
+    items: defaultExpenseItems,
   },
   investments: {
     items: [],
@@ -159,27 +165,38 @@ export const useWizardStore = create<WizardState>()(
         })),
 
       updateOperatingCosts: (data) =>
-        set((state) => {
-          const newCategories = {
-            rent: data.categories?.rent ?? state.operatingCosts.categories?.rent ?? 200,
-            telephoneInternet: data.categories?.telephoneInternet ?? state.operatingCosts.categories?.telephoneInternet ?? 10,
-            travelCosts: data.categories?.travelCosts ?? state.operatingCosts.categories?.travelCosts ?? 150,
-            insurance: data.categories?.insurance ?? state.operatingCosts.categories?.insurance ?? 20,
-            marketing: data.categories?.marketing ?? state.operatingCosts.categories?.marketing ?? 350,
-            softwareLicenses: data.categories?.softwareLicenses ?? state.operatingCosts.categories?.softwareLicenses ?? 25,
-            accounting: data.categories?.accounting ?? state.operatingCosts.categories?.accounting ?? 0,
-            officeSupplies: data.categories?.officeSupplies ?? state.operatingCosts.categories?.officeSupplies ?? 0,
-            chamberFees: data.categories?.chamberFees ?? state.operatingCosts.categories?.chamberFees ?? 0,
-            other: data.categories?.other ?? state.operatingCosts.categories?.other ?? 0,
-          };
-          return {
-            operatingCosts: {
-              ...state.operatingCosts,
-              ...data,
-              categories: newCategories,
-            },
-          };
-        }),
+        set((state) => ({
+          operatingCosts: {
+            ...state.operatingCosts,
+            ...data,
+          },
+        })),
+
+      addExpenseItem: (item) =>
+        set((state) => ({
+          operatingCosts: {
+            ...state.operatingCosts,
+            items: [...(state.operatingCosts.items || []), item],
+          },
+        })),
+
+      updateExpenseItem: (id, data) =>
+        set((state) => ({
+          operatingCosts: {
+            ...state.operatingCosts,
+            items: (state.operatingCosts.items || []).map((item) =>
+              item.id === id ? { ...item, ...data } : item
+            ),
+          },
+        })),
+
+      removeExpenseItem: (id) =>
+        set((state) => ({
+          operatingCosts: {
+            ...state.operatingCosts,
+            items: (state.operatingCosts.items || []).filter((item) => item.id !== id),
+          },
+        })),
 
       updateInvestments: (data) =>
         set((state) => ({
@@ -234,6 +251,20 @@ export const useWizardStore = create<WizardState>()(
         })),
 
       reset: () => set(initialState),
+
+      // Load all data at once (for Firestore integration)
+      loadAllData: (data) =>
+        set((state) => ({
+          ...state,
+          ...data,
+          company: { ...state.company, ...data.company },
+          plan: { ...state.plan, ...data.plan },
+          revenue: { ...state.revenue, ...data.revenue },
+          personnel: { ...state.personnel, ...data.personnel },
+          operatingCosts: { ...state.operatingCosts, ...data.operatingCosts },
+          investments: { ...state.investments, ...data.investments },
+          loans: { ...state.loans, ...data.loans },
+        })),
     }),
     {
       name: "founderflow-wizard",

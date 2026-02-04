@@ -13,6 +13,10 @@ import { CashFlowTable } from "@/components/dashboard/CashFlowTable";
 import { KPICards } from "@/components/dashboard/KPICards";
 import type { LiquidityResult } from "@/lib/calculations/liquidity";
 import type { Company } from "@/lib/types";
+import { useFinancialPlan } from "@/lib/hooks/useFinancialPlan";
+import { useWizardStore } from "@/lib/store/wizardStore";
+import { calculateLiquidity } from "@/lib/calculations/liquidity";
+import type { RevenueData, PersonnelData, OperatingCostsData, InvestmentsData, LoansData } from "@/lib/types";
 import {
   Plus,
   FileText,
@@ -21,6 +25,7 @@ import {
   LogOut,
   Calculator,
   Building2,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -49,14 +54,80 @@ export default function DashboardPage() {
   const { user, logout } = useAuthContext();
   const router = useRouter();
   const [result, setResult] = useState<StoredResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const { getUserPlans } = useFinancialPlan();
+  const wizardStore = useWizardStore();
 
   useEffect(() => {
-    // Load result from localStorage (in a real app, this would be from Firestore)
-    const stored = localStorage.getItem("founderflow-result");
-    if (stored) {
-      setResult(JSON.parse(stored));
+    async function loadData() {
+      setIsLoading(true);
+      
+      // First, try to load from localStorage (immediate display)
+      const stored = localStorage.getItem("founderflow-result");
+      if (stored) {
+        try {
+          setResult(JSON.parse(stored));
+        } catch (e) {
+          console.error("Failed to parse localStorage data:", e);
+        }
+      }
+
+      // If user is logged in, try to load from Firestore
+      if (user) {
+        try {
+          const plans = await getUserPlans();
+          if (plans.length > 0) {
+            // Load the most recent plan
+            const latestPlan = plans[0];
+            const data = latestPlan.data;
+            
+            // Calculate liquidity from loaded data
+            const planData = data.plan as { startYear?: number; startingLiquidity?: number; name?: string } | undefined;
+            const companyData = data.company as { stammkapital?: number; hebesatz?: number; companyName?: string } | undefined;
+            
+            const startYear = typeof planData?.startYear === 'number' ? planData.startYear : new Date().getFullYear();
+            const startingLiquidity = typeof planData?.startingLiquidity === 'number' ? planData.startingLiquidity : 0;
+            const stammkapital = typeof companyData?.stammkapital === 'number' ? companyData.stammkapital : 1;
+            const hebesatz = typeof companyData?.hebesatz === 'number' ? companyData.hebesatz : 400;
+
+            const liquidityResult = calculateLiquidity({
+              startYear,
+              startingLiquidity,
+              stammkapital,
+              hebesatz,
+              revenue: data.revenue as unknown as RevenueData,
+              personnel: data.personnel as unknown as PersonnelData,
+              operatingCosts: data.operatingCosts as unknown as OperatingCostsData,
+              investments: data.investments as unknown as InvestmentsData,
+              loans: data.loans as unknown as LoansData,
+            });
+
+            const firestoreResult: StoredResult = {
+              company: companyData as Partial<Company>,
+              plan: {
+                name: planData?.name || "Financial Plan",
+                startYear,
+                startingLiquidity,
+              },
+              liquidityResult,
+            };
+
+            setResult(firestoreResult);
+            
+            // Also update localStorage for consistency
+            localStorage.setItem("founderflow-result", JSON.stringify(firestoreResult));
+          }
+        } catch (error) {
+          console.error("Failed to load from Firestore:", error);
+          // Continue with localStorage data if available
+        }
+      }
+
+      setIsLoading(false);
     }
-  }, []);
+
+    loadData();
+  }, [user, getUserPlans]);
 
   const handleLogout = async () => {
     await logout();
@@ -133,7 +204,12 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {result ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">{t("common.loading")}</p>
+          </div>
+        ) : result ? (
           <div className="space-y-8">
             {/* Company Info & Actions */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

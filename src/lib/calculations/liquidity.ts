@@ -14,7 +14,6 @@ import type {
   RevenueData,
   PersonnelData,
   OperatingCostsData,
-  OperatingCostCategories,
   InvestmentsData,
   LoansData,
   MonthlyCalculation,
@@ -90,43 +89,70 @@ function getMonthlyPersonnelCosts(personnel: PersonnelData, month: string): numb
 
 /**
  * Get operating costs for a specific month with breakdown
+ * Supports both new dynamic items array and legacy fixed categories
  */
 function getMonthlyOperatingCosts(costs: OperatingCostsData, month: string): {
   total: number;
-  breakdown: Partial<OperatingCostCategories>;
+  breakdown: Record<string, number>;
 } {
-  const defaultCategories: OperatingCostCategories = {
-    rent: 200,
-    telephoneInternet: 10,
-    travelCosts: 150,
-    insurance: 20,
-    marketing: 350,
-    softwareLicenses: 25,
-    accounting: 0,
-    officeSupplies: 0,
-    chamberFees: 0,
-    other: 0,
-  };
+  // New dynamic items structure
+  if (costs.items && costs.items.length > 0) {
+    const breakdown: Record<string, number> = {};
+    let total = 0;
 
-  const baseCategories = costs.categories || defaultCategories;
-
-  // Create breakdown with applied overrides
-  const breakdown: Partial<OperatingCostCategories> = { ...baseCategories };
-
-  // Apply monthly overrides if any
-  if (costs.monthlyOverrides && costs.monthlyOverrides[month]) {
-    const overrides = costs.monthlyOverrides[month];
-    for (const [key, value] of Object.entries(overrides)) {
-      if (value !== undefined) {
-        (breakdown as Record<string, number>)[key] = value;
-      }
+    for (const item of costs.items) {
+      breakdown[item.name] = item.amount;
+      total += item.amount;
     }
+
+    return { total, breakdown };
   }
 
-  // Calculate total
-  const total = Object.values(breakdown).reduce((sum, val) => sum + (val || 0), 0);
+  // Legacy fixed categories structure (backward compatibility)
+  if (costs.categories) {
+    const breakdown: Record<string, number> = {};
+    let total = 0;
 
-  return { total, breakdown };
+    const categoryNames: Record<string, string> = {
+      rent: "Miete",
+      telephoneInternet: "Telefon & Internet",
+      travelCosts: "Fahrt-/Reisekosten",
+      insurance: "Versicherungen",
+      marketing: "Marketing",
+      softwareLicenses: "Software Lizenzen",
+      accounting: "Steuerberater",
+      officeSupplies: "Büromaterial",
+      chamberFees: "IHK Beiträge",
+      other: "Sonstiges",
+    };
+
+    for (const [key, value] of Object.entries(costs.categories)) {
+      if (value && value > 0) {
+        const name = categoryNames[key] || key;
+        breakdown[name] = value;
+        total += value;
+      }
+    }
+
+    // Apply monthly overrides if any
+    if (costs.monthlyOverrides && costs.monthlyOverrides[month]) {
+      const overrides = costs.monthlyOverrides[month];
+      for (const [key, value] of Object.entries(overrides)) {
+        if (value !== undefined) {
+          const name = categoryNames[key] || key;
+          // Update total: remove old value, add new value
+          const oldValue = breakdown[name] || 0;
+          total = total - oldValue + value;
+          breakdown[name] = value;
+        }
+      }
+    }
+
+    return { total, breakdown };
+  }
+
+  // Default empty
+  return { total: 0, breakdown: {} };
 }
 
 /**

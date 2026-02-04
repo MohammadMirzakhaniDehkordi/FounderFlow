@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 import { useWizardStore } from "@/lib/store/wizardStore";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -27,6 +27,7 @@ interface WizardLayoutProps {
   nextLabel?: string;
   nextDisabled?: boolean;
   showBack?: boolean;
+  isLoading?: boolean;
 }
 
 export function WizardLayout({
@@ -36,6 +37,7 @@ export function WizardLayout({
   nextLabel,
   nextDisabled = false,
   showBack = true,
+  isLoading = false,
 }: WizardLayoutProps) {
   const { t } = useTranslation();
   const { currentStep, nextStep, prevStep } = useWizardStore();
@@ -128,12 +130,14 @@ export function WizardLayout({
           </Button>
 
           {currentStep < STEP_KEYS.length - 1 ? (
-            <Button onClick={handleNext} disabled={nextDisabled}>
+            <Button onClick={handleNext} disabled={nextDisabled || isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {nextLabel ?? defaultNextLabel}
-              <ChevronRight className="ml-2 h-4 w-4" />
+              {!isLoading && <ChevronRight className="ml-2 h-4 w-4" />}
             </Button>
           ) : (
-            <Button onClick={handleNext} disabled={nextDisabled}>
+            <Button onClick={handleNext} disabled={nextDisabled || isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {nextLabel ?? defaultNextLabel}
             </Button>
           )}

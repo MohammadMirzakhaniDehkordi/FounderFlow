@@ -63,27 +63,39 @@ export interface PersonnelData {
   employees: Employee[];
 }
 
-// Operating Costs Types (matching German Betriebskosten structure)
+// Operating Cost Item (dynamic - user can add/remove)
+export interface OperatingCostItem {
+  id: string;
+  name: string; // e.g., "Miete", "Materialkosten", custom names
+  amount: number; // Monthly amount in €
+  category?: string; // Optional category for grouping
+  description?: string; // Optional description
+}
+
+// Default expense categories (for suggestions/templates)
+export const DEFAULT_EXPENSE_CATEGORIES = [
+  { id: "rent", name: "Miete", nameEn: "Rent", nameFa: "اجاره", defaultAmount: 200 },
+  { id: "telephoneInternet", name: "Telefon & Internet", nameEn: "Phone & Internet", nameFa: "تلفن و اینترنت", defaultAmount: 50 },
+  { id: "travelCosts", name: "Fahrt-/Reisekosten", nameEn: "Travel Costs", nameFa: "هزینه سفر", defaultAmount: 150 },
+  { id: "insurance", name: "Versicherungen", nameEn: "Insurance", nameFa: "بیمه", defaultAmount: 50 },
+  { id: "marketing", name: "Marketing", nameEn: "Marketing", nameFa: "بازاریابی", defaultAmount: 200 },
+  { id: "softwareLicenses", name: "Software Lizenzen", nameEn: "Software Licenses", nameFa: "مجوز نرم‌افزار", defaultAmount: 100 },
+  { id: "accounting", name: "Steuerberater", nameEn: "Accountant", nameFa: "حسابدار", defaultAmount: 150 },
+  { id: "officeSupplies", name: "Büromaterial", nameEn: "Office Supplies", nameFa: "لوازم اداری", defaultAmount: 30 },
+  { id: "chamberFees", name: "IHK Beiträge", nameEn: "Chamber Fees", nameFa: "حق عضویت اتاق", defaultAmount: 20 },
+] as const;
+
+// Legacy fixed categories interface (kept for backward compatibility)
 export interface OperatingCostCategories {
-  // Miete (Rent)
   rent: number;
-  // Telefon, Internet
   telephoneInternet: number;
-  // Fahrtkosten/Reisekosten
   travelCosts: number;
-  // Versicherungen (Betriebshaftpflicht, etc.)
   insurance: number;
-  // Marketing (Web, LinkedIn, Facebook, Instagram, usw.)
   marketing: number;
-  // Software Lizenzen (Zoom, Microsoft, etc.)
   softwareLicenses: number;
-  // Steuerberater
   accounting: number;
-  // Büromaterial
   officeSupplies: number;
-  // IHK Beiträge
   chamberFees: number;
-  // Sonstiges
   other: number;
 }
 
@@ -96,8 +108,11 @@ export interface VATConfig {
 
 export interface OperatingCostsData {
   planId: string;
-  categories: OperatingCostCategories;
-  monthlyOverrides: Record<string, Partial<OperatingCostCategories>>; // "2026-01" => overrides
+  // New dynamic items array
+  items: OperatingCostItem[];
+  // Legacy categories (for backward compatibility)
+  categories?: OperatingCostCategories;
+  monthlyOverrides?: Record<string, Partial<OperatingCostCategories>>;
 }
 
 // Investment Types
@@ -143,7 +158,7 @@ export interface MonthlyCalculation {
   // Outflows
   personnelCosts: number;
   operatingCosts: number;
-  operatingCostsBreakdown: Partial<OperatingCostCategories>; // Detailed breakdown
+  operatingCostsBreakdown: Record<string, number>; // Dynamic breakdown: { "Miete": 500, "Marketing": 200, ... }
   investmentCosts: number;
   loanInterest: number;
   loanPrincipal: number;

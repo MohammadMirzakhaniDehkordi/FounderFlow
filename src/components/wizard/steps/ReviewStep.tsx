@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -16,7 +15,6 @@ import {
 import { WizardLayout } from "../WizardLayout";
 import { useWizardStore } from "@/lib/store/wizardStore";
 import { calculateLiquidity, checkLiquidityWarnings } from "@/lib/calculations/liquidity";
-import { calculateTaxes } from "@/lib/calculations/taxes";
 import type { RevenueData, PersonnelData, OperatingCostsData, InvestmentsData, LoansData } from "@/lib/types";
 import {
   Building2,
@@ -27,15 +25,21 @@ import {
   Landmark,
   AlertTriangle,
   CheckCircle2,
-  ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
+import { useFinancialPlan } from "@/lib/hooks/useFinancialPlan";
+import { useAuthContext } from "@/components/providers/AuthProvider";
 
 export function ReviewStep() {
   const { t, locale } = useTranslation();
   const router = useRouter();
+  const { user } = useAuthContext();
+  const { savePlan, loading: savingPlan } = useFinancialPlan();
   const numberLocale = locale === "de" ? "de-DE" : locale === "fa" ? "fa-IR" : "en-US";
+  const [isSaving, setIsSaving] = useState(false);
+
   const {
     company,
     plan,
@@ -44,7 +48,7 @@ export function ReviewStep() {
     operatingCosts,
     investments,
     loans,
-    reset,
+    planId,
   } = useWizardStore();
 
   // Calculate financial projections
@@ -70,10 +74,10 @@ export function ReviewStep() {
     (sum, emp) => sum + emp.monthlySalary,
     0
   );
-  const totalOperatingMonthly = Object.values(operatingCosts.categories || {}).reduce(
-    (sum, val) => sum + (val || 0),
-    0
-  );
+  // Support both new items array and legacy categories
+  const totalOperatingMonthly = operatingCosts.items
+    ? operatingCosts.items.reduce((sum, item) => sum + item.amount, 0)
+    : Object.values(operatingCosts.categories || {}).reduce((sum, val) => sum + (val || 0), 0);
   const totalInvestments = (investments.items || []).reduce(
     (sum, item) => sum + item.amount,
     0
@@ -89,19 +93,43 @@ export function ReviewStep() {
     }).format(value);
 
   const handleFinish = async () => {
-    toast.success(t("wizard.review.planCreated"));
-    if (typeof window !== "undefined") {
-      localStorage.setItem("founderflow-result", JSON.stringify({
-        company,
-        plan,
-        liquidityResult,
-      }));
+    setIsSaving(true);
+    
+    try {
+      // Save to localStorage for immediate display
+      if (typeof window !== "undefined") {
+        localStorage.setItem("founderflow-result", JSON.stringify({
+          company,
+          plan,
+          liquidityResult,
+        }));
+      }
+
+      // Save to Firestore if user is logged in
+      if (user) {
+        try {
+          await savePlan(planId || undefined);
+          toast.success(t("wizard.review.planCreated"));
+        } catch (error) {
+          console.error("Failed to save to Firestore:", error);
+          // Still continue to dashboard, data is in localStorage
+          toast.success(t("wizard.review.planCreated"));
+        }
+      } else {
+        toast.success(t("wizard.review.planCreated"));
+      }
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error finishing plan:", error);
+      toast.error("Failed to save plan");
+    } finally {
+      setIsSaving(false);
     }
-    router.push("/dashboard");
   };
 
   return (
-    <WizardLayout onNext={handleFinish} nextLabel={t("wizard.createPlan")}>
+    <WizardLayout onNext={handleFinish} nextLabel={isSaving ? t("common.saving") : t("wizard.createPlan")} isLoading={isSaving}>
       <div className="space-y-6">
         <p className="text-muted-foreground">
           {t("wizard.review.intro")}

@@ -9,13 +9,29 @@ service cloud.firestore {
     
     // Financial plans collection - users can only access their own plans
     match /plans/{planId} {
-      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow read if user owns the plan
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow write if user owns the plan
+      allow write: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Allow create if user is setting themselves as owner
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Allow delete if user owns the plan
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
     
     // User's sub-collections (revenue, costs, etc.)
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Companies collection (legacy)
+    match /companies/{companyId} {
+      allow read, write: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    
+    match /companies/{companyId}/{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
